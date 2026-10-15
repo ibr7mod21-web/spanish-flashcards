@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Flashcards</title>
+  <meta name="description" content="Spanish flashcards with spaced repetition">
+  <meta name="theme-color" content="#f6f5f2" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#16171a" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Español">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- HOME -->
+  <main id="home" class="screen" hidden>
+    <header class="bar">
+      <h1>Español</h1>
+      <button class="link" id="to-stats" type="button">Stats</button>
+    </header>
+    <button class="primary big" id="review-all" type="button">Review all due</button>
+    <ul class="cats" id="cat-list"></ul>
+    <p class="muted small" id="deck-note"></p>
+  </main>
+
+  <!-- CARD -->
+  <main id="card" class="screen" hidden>
+    <header class="bar">
+      <button class="link" id="card-back" type="button">‹ Home</button>
+      <span class="muted" id="progress"></span>
+    </header>
+
+    <div class="tip" id="voice-tip" hidden>
+      <p>Add a Spanish keyboard and tap its mic to answer by voice.</p>
+      <button class="link" id="tip-close" type="button">Got it</button>
+    </div>
+
+    <section class="prompt">
+      <p class="cat-label muted small" id="card-cat"></p>
+      <h2 class="word" id="word"></h2>
+    </section>
+
+    <form id="answer-form" autocomplete="off">
+      <input id="answer" type="text" enterkeyhint="go" placeholder="en español…"
+             autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" lang="es">
+      <button class="primary big" id="action" type="submit">Check</button>
+      <button class="link center" id="reveal" type="button">Show answer</button>
+    </form>
+
+    <section class="feedback" id="feedback" hidden>
+      <p class="verdict" id="verdict"></p>
+      <p class="expected" id="expected" lang="es"></p>
+      <p class="yours muted small" id="yours"></p>
+      <p class="hint" id="hint" lang="ar" dir="rtl"></p>
+    </section>
+  </main>
+
+  <!-- SESSION DONE -->
+  <main id="done" class="screen" hidden>
+    <header class="bar"><h1>Done</h1></header>
+    <div class="summary" id="summary"></div>
+    <button class="primary big" id="done-home" type="button">Home</button>
+  </main>
+
+  <!-- STATS -->
+  <main id="stats" class="screen" hidden>
+    <header class="bar">
+      <button class="link" id="stats-back" type="button">‹ Home</button>
+      <h1>Stats</h1>
+      <span></span>
+    </header>
+
+    <section class="panel">
+      <h3>Accuracy</h3>
+      <p class="accuracy" id="accuracy"></p>
+    </section>
+
+    <section class="panel">
+      <h3>Cards per box</h3>
+      <div class="boxes" id="boxes"></div>
+    </section>
+
+    <section class="panel">
+      <h3>Weakest cards</h3>
+      <ol class="weak" id="weak"></ol>
+    </section>
+
+    <section class="panel">
+      <h3>Backup</h3>
+      <p class="muted small">iOS can clear web app storage. Export your progress now and then, and keep the text somewhere safe (Notes, Files).</p>
+      <div class="row">
+        <button class="secondary" id="export" type="button">Export</button>
+        <button class="secondary" id="import-open" type="button">Import</button>
+      </div>
+      <div id="export-box" hidden>
+        <p class="small muted" id="export-msg"></p>
+        <textarea id="export-text" readonly rows="6"></textarea>
+      </div>
+      <div id="import-box" hidden>
+        <p class="small muted">Paste exported progress below. It replaces progress for the cards it contains.</p>
+        <textarea id="import-text" rows="6" placeholder='{"exportedAt": …}'></textarea>
+        <button class="primary" id="import-go" type="button">Restore progress</button>
+        <p class="small" id="import-msg"></p>
+      </div>
+    </section>
+  </main>
+
+  <script src="grading.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

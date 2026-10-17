@@ -38,7 +38,7 @@ Dialect: general Latin American-neutral Spanish (Duolingo style).
 - `arLabel` (category, optional): text shown above the Arabic on the Study card back and the quiz reveal. Only `arabic` (Arabic origins) uses it: `"From Arabic:"`, and its `ar` is the Arabic **source** word exactly as given by the owner (not a translation).
 - Adjectives accept the feminine form as an `alt` (tested for feelings/health).
 - **Person nouns** (doctor, neighbor, teacher, friend, mayor…) accept the feminine form as an `alt` (médico → médica/doctora, vecino → vecina, alcalde → alcaldesa), in Core and the rest of the deck. Exception: pairs that already have separate male/female cards (family: brother/sister, cousin (male)/(female), uncle/aunt…). Invariable nouns (turista, persona) need nothing.
-- Before adding words: check against every existing `es` and `alt` (accent-insensitive) and skip duplicates; tests block a new card repeating an older card's Spanish. Verbs' `ar` uses the Arabic dictionary form (past, 3rd person masc.). Arabic-origin Spanish words show the Arabic root (azúcar → السكر, aceite → الزيت, arroz → الرز).
+- Before adding words: check against every existing `es` and `alt` (accent-insensitive) and skip duplicates; tests block a new card repeating an older card's Spanish. Verbs' `ar` uses the **present tense, 3rd person masculine** (يكتب, يذهب, يجب) everywhere in the deck (tested). Arabic-origin Spanish words show the Arabic root (azúcar → السكر, aceite → الزيت, arroz → الرز).
 - `alt`: other accepted answers. `ar`: Arabic translation (every card has one; `tests/deck.test.js` enforces it). Months use the يناير…ديسمبر names.
 - Number cards (category id `numbers`): the numeric value is taken from the trailing digits of the id (`num-06` → 6), or from an optional `n` field if present.
 
@@ -120,12 +120,13 @@ The ~2,000 most common Spanish words, general Latin American Spanish, added in b
 - **Form**: verbs as infinitives; nouns without the article; adjectives masculine with the feminine (and apocopated forms: buen, gran, primer, algún) as `alt`; person nouns with the feminine as `alt`.
 - **Clarifiers** in brackets when the English is ambiguous or already used: "time (occurrence)" vez / "time (duration)" tiempo, "to know (a person, a place)" conocer, "you (formal)" / "you (informal)", "when (not a question)", "what? (question)".
 - **Alts**: real general-LatAm synonyms only (volver/regresar, aquí/acá, conseguir/lograr/obtener). Number words get `n` (their value).
-- **Arabic**: every card has an accurate Modern Standard Arabic `ar`; verbs in dictionary form (past, 3rd person masc.); possessives shown with an example (ـي (مثل: بيتي)).
+- **Arabic**: every card has an accurate Modern Standard Arabic `ar`; verbs in the present tense, 3rd person masc. (يكتب); possessives shown with an example (ـي (مثل: بيتي)).
 - **Self-review checklist** (the tutor no longer reviews every table — check every batch against this before adding it):
+  0. **Tutor rulings win**: when the tutor rules on a card, apply it exactly, even over these rules. Deliberate same-category overlaps go in `tools/core/approved-overlaps.json` (read by the tests and the checker) (e.g. "to show" accepts enseñar, which is also "to teach").
   1. **Alts**: every common correct answer for the English prompt — neuter demonstratives (esto, eso, aquello), feminine forms of adjectives and person nouns, common synonyms (volver/regresar, conseguir/lograr), adverb forms (solo/solamente). An alt may be another card's word (e.g. "to happen" accepts pasar); a card's **main** `es` must be new to the deck.
   2. **One answer per prompt**: if another common Spanish word would also be right and isn't an alt, add it as an alt or add a clarifier in brackets ("to look at (on purpose)" so ver isn't marked wrong).
   3. **No clash** with any existing card: the same English must not lead to a different Spanish answer elsewhere. The checker prints "overlaps" notes for shared English glosses; resolve each one (clarifier, alt, or accept when the rest of the prompt disambiguates).
-  4. **Arabic**: accurate MSA covering every sense in the prompt (must / owe → يجب / مَدين بـ). **Verbs from core-02 on use the present tense, 3rd person masculine** (يكتب, يجب — not كتب, وجب). (Older categories and core-01 still use the past form.)
+  4. **Arabic**: accurate MSA covering every sense in the prompt (must / owe → يجب / مَدين بـ). **Verbs use the present tense, 3rd person masculine** (يكتب, يجب — not كتب, وجب); the whole deck follows this (converted Oct 2026, tested).
   5. **Precise meanings**: don't map near-misses (bigger ≠ mayor → "older / greater"; false friends like realizar = to carry out, actualmente = currently get a clarifier).
   6. **Mark anything unsure** and list it in the batch report for the tutor.
 - **Report** (self-review mode): don't print full tables; give the deck version, card counts and only the unsure cards (max ~20, with the reason).

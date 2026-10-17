@@ -61,6 +61,7 @@ def check(rows, deck, nn):
                 old_bare.setdefault(bare(f), (c['id'], f))
             old_en[c['en'].lower()] = c['id']
     seen_es, seen_en, seen_bare = {}, {}, {}
+    approved = json.load(open(os.path.join(ROOT, 'tools', 'core', 'approved-overlaps.json'), encoding='utf-8'))
     for i, r in enumerate(rows, 1):
         tag = f"{i:03d} {r['es']}"
         if not (r['en'] and r['es'] and r['ar']):
@@ -79,7 +80,8 @@ def check(rows, deck, nn):
             problems.append(f"{tag}: English \"{r['en']}\" already used by {old_en[r['en'].lower()]} — add a clarifier")
         if r['en'].lower() in seen_en:
             problems.append(f"{tag}: English \"{r['en']}\" repeated in this batch")
-        for f in [r['es']] + r['alt']:
+        ok_alts = approved.get(f'core-{nn}-{i:03d}', [])
+        for f in [r['es']] + [a for a in r['alt'] if a not in ok_alts]:
             if low(f) in seen_es and seen_es[low(f)][0] != i:
                 problems.append(f'{tag}: "{f}" also used by batch row {seen_es[low(f)][0]:03d}')
             elif bare(f) in seen_bare and seen_bare[bare(f)][0] != i:

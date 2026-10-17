@@ -1,0 +1,4 @@
+{
+  "_comment": "Tutor-approved alts that are also another card's answer in the same batch. card id -> alts. Read by tests/deck.test.js and tools/add_core_batch.py.",
+  "core-04-045": ["enseñar"]
+}

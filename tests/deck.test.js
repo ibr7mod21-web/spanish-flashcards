@@ -111,10 +111,14 @@ test('existing alts are kept', () => {
   for (const [id, want] of Object.entries(keep)) for (const w of want) assert.ok(alts[id].includes(w), `${id} lost alt ${w}`);
 });
 
-test('an alt never equals another card\'s answer in the same category', () => {
+// Deliberate overlaps approved by the tutor (the alt is right for this prompt too): tools/core/approved-overlaps.json
+const APPROVED_SHARED_ALTS = require('../tools/core/approved-overlaps.json');
+
+test('an alt never equals another card\'s answer in the same category (except approved overlaps)', () => {
   for (const cat of deck.categories) {
     const main = new Map(cat.cards.map((c) => [c.es, c.id]));
     for (const c of cat.cards) for (const a of c.alt || []) {
+      if ((APPROVED_SHARED_ALTS[c.id] || []).includes(a)) continue;
       assert.ok(!main.has(a) || main.get(a) === c.id, `${c.id} alt "${a}" is ${main.get(a)}'s answer`);
     }
   }
@@ -236,7 +240,8 @@ test('Core: each main Spanish word was new when added (alts may reuse earlier wo
     // a Core card never shares its main word with another card (older homonyms like naranja are allowed)
     if (/^core-/.test(cat.id)) assert.ok(!mainOwner.has(low(card.es)), `${card.id} and ${mainOwner.get(low(card.es))} share "${card.es}"`);
     mainOwner.set(low(card.es), card.id);
-    for (const f of [card.es].concat(card.alt || [])) if (!seen.has(low(f))) seen.set(low(f), card.id);
+    const approved = APPROVED_SHARED_ALTS[card.id] || [];
+    for (const f of [card.es].concat((card.alt || []).filter((x) => !approved.includes(x)))) if (!seen.has(low(f))) seen.set(low(f), card.id);
   }
 });
 
@@ -300,13 +305,25 @@ test('Core 101–600: checklist spot checks (synonyms, feminine forms, clarifier
   }
 });
 
-test('Core verbs from core-02 on: Arabic in the present tense (starts with ي / ت)', () => {
-  for (const cat of core.filter((c) => c.id >= 'core-02')) {
-    for (const c of cat.cards) {
-      if (!/^to /.test(c.en)) continue;
-      assert.ok(/^[يت]/.test(c.ar), `${c.id} ${c.es}: ${c.ar}`);
-    }
+test('every verb card (English "to …") has its Arabic in the present tense (starts with ي / ت)', () => {
+  for (const { card } of cards) {
+    if (/^to /.test(card.en)) assert.ok(/^[يت]/.test(card.ar), `${card.id} ${card.es}: ${card.ar}`);
   }
+});
+
+test('tutor rulings on the flagged Core cards (Oct 2026)', () => {
+  const byId = Object.fromEntries(cards.map((x) => [x.card.id, x]));
+  const ok = (id, ans) => assert.equal(grade(ans, byId[id].card, byId[id].cat.id).result, 'correct', `${id}: ${ans}`);
+  assert.equal(byId['core-02-030'].card.en, 'real / true'); ok('core-02-030', 'verdadero');
+  ok('core-02-043', 'hasta'); ok('core-02-043', 'aun');
+  assert.equal(byId['core-02-045'].card.ar, 'أيضًا لا');
+  assert.equal(byId['core-02-034'].card.en, 'any (whichever one)');
+  ok('core-02-078', 'plata'); ok('core-02-078', 'lana');
+  assert.equal(byId['core-02-100'].card.en, 'small town');
+  ok('core-04-045', 'enseñar'); ok('core-04-046', 'enseñar');
+  ok('core-05-089', 'tirar de');
+  ok('core-06-009', 'colonia');
+  assert.equal(byId['core-06-017'].card.es, 'clima'); // kept: "el clima" is the normal LatAm word for weather
 });
 
 test('person nouns accept the feminine form', () => {

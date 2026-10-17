@@ -58,7 +58,10 @@ test('number cards accept their digits', () => {
 
 test('expected categories and card counts', () => {
   const counts = Object.fromEntries(deck.categories.map((c) => [c.id, c.cards.length]));
-  assert.deepEqual(counts, { days: 7, numbers: 21, months: 12, colors: 11, family: 14, food: 22, verbs: 20 });
+  assert.deepEqual(counts, {
+    days: 7, numbers: 21, months: 12, colors: 11, family: 14, food: 22, verbs: 20,
+    travel: 19, house: 19, health: 19, feelings: 18, time: 19, verbs2: 25, arabic: 25,
+  });
 });
 
 test('every published id still exists, in the same category (tests/known-ids.txt)', () => {
@@ -72,7 +75,8 @@ test('every published id still exists, in the same category (tests/known-ids.txt
 });
 
 test('ids in each new category share a prefix', () => {
-  const prefix = { colors: 'col-', family: 'fam-', food: 'food-', verbs: 'verb-' };
+  const prefix = { colors: 'col-', family: 'fam-', food: 'food-', verbs: 'verb-', travel: 'trav-', house: 'house-',
+    health: 'hlth-', feelings: 'feel-', time: 'time-', verbs2: 'verb2-', arabic: 'arab-' };
   for (const { card, cat } of cards) if (prefix[cat.id]) assert.ok(card.id.startsWith(prefix[cat.id]), card.id);
 });
 
@@ -120,6 +124,72 @@ test('Arabic-origin words show the Arabic root word', () => {
   assert.equal(byEs['azúcar'].ar, 'السكر');
   assert.equal(byEs['aceite'].ar, 'الزيت');
   assert.equal(byEs['arroz'].ar, 'الرز');
+});
+
+test('new categories: alts from the spec are accepted', () => {
+  const byEn = Object.fromEntries(cards.map((x) => [x.card.en, x]));
+  const cases = [
+    ['ticket', 'pasaje'], ['reservation', 'reserva'], ['to rent', 'rentar'],
+    ['bedroom', 'cuarto'], ['bedroom', 'recámara'], ['floor (ground)', 'suelo'], ['refrigerator', 'nevera'],
+    ['refrigerator', 'refrigeradora'], ['rent (payment)', 'alquiler'],
+    ['doctor', 'doctor'], ['medicine', 'medicamento'], ['healthy', 'saludable'],
+    ['happy', 'contento'], ['lazy', 'flojo'], ['funny', 'chistoso'],
+    ['the day before yesterday', 'antier'], ['often', 'seguido'], ['still / yet', 'aún'], ['later', 'luego'],
+    ['next year', 'el año que viene'],
+    ['to remember', 'acordarse'], ['to try', 'tratar'], ['to choose', 'escoger'], ['to begin', 'comenzar'],
+    ['to finish', 'acabar'], ['to answer', 'responder'],
+  ];
+  for (const [en, ans] of cases) {
+    const { card, cat } = byEn[en];
+    assert.equal(grade(ans, card, cat.id).result, 'correct', `${en}: ${ans}`);
+  }
+});
+
+test('adjectives also accept the feminine form', () => {
+  const byEn = Object.fromEntries(cards.map((x) => [x.card.en, x]));
+  const fem = {
+    sick: 'enferma', healthy: 'sana', happy: 'contenta', tired: 'cansada', angry: 'enojada', worried: 'preocupada',
+    nervous: 'nerviosa', bored: 'aburrida', scared: 'asustada', proud: 'orgullosa', lazy: 'perezosa',
+    hardworking: 'trabajadora', shy: 'tímida', funny: 'graciosa', jealous: 'celosa', surprised: 'sorprendida', calm: 'tranquila',
+  };
+  for (const [en, f] of Object.entries(fem)) {
+    const { card, cat } = byEn[en];
+    assert.equal(grade(f, card, cat.id).result, 'correct', `${en}: ${f}`);
+  }
+  // also the feminine of an alt
+  assert.equal(grade('floja', byEn.lazy.card, 'feelings').result, 'correct');
+  assert.equal(grade('chistosa', byEn.funny.card, 'feelings').result, 'correct');
+});
+
+test('every feelings card that is an -o adjective has its -a form', () => {
+  for (const c of deck.categories.find((x) => x.id === 'feelings').cards) {
+    for (const form of [c.es].concat(c.alt || [])) {
+      if (/o$/.test(form)) assert.ok((c.alt || []).includes(form.replace(/o$/, 'a')), `${c.id} ${form} has no feminine alt`);
+    }
+  }
+});
+
+test('Arabic origins: "ar" is the Arabic source word, labelled "From Arabic:"', () => {
+  const cat = deck.categories.find((x) => x.id === 'arabic');
+  assert.equal(cat.arLabel, 'From Arabic:');
+  const src = Object.fromEntries(cat.cards.map((c) => [c.es, c.ar]));
+  assert.equal(src['aceituna'], 'الزيتونة');
+  assert.equal(src['alcalde'], 'القاضي');
+  assert.equal(src['ojalá'], 'لو شاء الله');
+  assert.equal(src['alquiler'], 'الكراء');
+  assert.equal(cat.cards.length, 25);
+  // only this category has a label
+  assert.deepEqual(deck.categories.filter((x) => x.arLabel).map((x) => x.id), ['arabic']);
+});
+
+test('no new card repeats a Spanish word that was already in the deck', () => {
+  const OLD = ['days', 'numbers', 'months', 'colors', 'family', 'food', 'verbs'];
+  const bare = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const old = new Set(cards.filter((x) => OLD.includes(x.cat.id)).flatMap((x) => [x.card.es].concat(x.card.alt || [])).map(bare));
+  for (const { card, cat } of cards) {
+    if (OLD.includes(cat.id)) continue;
+    assert.ok(!old.has(bare(card.es)), `${card.id} ${card.es} already in the deck`);
+  }
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

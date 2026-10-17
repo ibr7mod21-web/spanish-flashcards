@@ -1,5 +1,5 @@
 // Bump CACHE_VERSION on every app change (html/css/js/icons/manifest).
-const CACHE_VERSION = 'v8';
+const CACHE_VERSION = 'v9';
 const CACHE = 'sf-' + CACHE_VERSION;
 
 const SHELL = [

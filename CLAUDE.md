@@ -28,13 +28,16 @@ Dialect: general Latin American-neutral Spanish (Duolingo style).
 
 ## Deck schema
 ```
-{ version, dialect, categories: [ { id, name, cards: [ { id, en, es, alt?: [], ar? } ] } ] }
+{ version, dialect, categories: [ { id, name, arLabel?, cards: [ { id, en, es, alt?: [], ar? } ] } ] }
 ```
 - Card ids are permanent; progress is keyed by id. **Never renumber or reuse ids.** New cards get new ids.
 - `tests/known-ids.txt` lists every published id (`category id`). Append new ids there; never delete or edit lines. The deck test fails if an id disappears or moves category.
 - `alt` only for synonyms that are right in general Latin American use (e.g. rojo/colorado, morado/violeta/púrpura, esposo/marido); skip regional or context-only words. Tests check existing alts are kept and that no alt is another card's answer in the same category.
 - Ambiguous English gets a clarifier in brackets, e.g. `orange (color)` / `orange (fruit)`; English prompts must be unique (tested).
-- Categories: days, numbers, months, colors (`col-`), family (`fam-`), food (`food-`), verbs (`verb-`). Verbs' `ar` uses the Arabic dictionary form (past, 3rd person masc.). Arabic-origin Spanish words show the Arabic root (azúcar → السكر, aceite → الزيت, arroz → الرز).
+- Categories (id prefix): days, numbers, months, colors (`col-`), family (`fam-`), food (`food-`), verbs (`verb-`), travel (`trav-`), house (`house-`), health (`hlth-`), feelings (`feel-`), time (`time-`), verbs2 (`verb2-`), arabic (`arab-`).
+- `arLabel` (category, optional): text shown above the Arabic on the Study card back and the quiz reveal. Only `arabic` (Arabic origins) uses it: `"From Arabic:"`, and its `ar` is the Arabic **source** word exactly as given by the owner (not a translation).
+- Adjectives accept the feminine form as an `alt` (tested for feelings/health). Gendered nouns (cousin, neighbor, doctor) don't get the other gender unless asked.
+- Before adding words: check against every existing `es` and `alt` (accent-insensitive) and skip duplicates; tests block a new card repeating an older card's Spanish. Verbs' `ar` uses the Arabic dictionary form (past, 3rd person masc.). Arabic-origin Spanish words show the Arabic root (azúcar → السكر, aceite → الزيت, arroz → الرز).
 - `alt`: other accepted answers. `ar`: Arabic translation (every card has one; `tests/deck.test.js` enforces it). Months use the يناير…ديسمبر names.
 - Number cards (category id `numbers`): the numeric value is taken from the trailing digits of the id (`num-06` → 6), or from an optional `n` field if present.
 

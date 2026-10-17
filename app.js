@@ -275,6 +275,9 @@
     const showYours = !reveal && r.result !== CORRECT;
     $('yours').textContent = showYours ? `You wrote: ${answer.trim()}` : '';
     $('hint').textContent = card.ar || '';
+    // Some categories label the Arabic, e.g. "From Arabic:" for words of Arabic origin (deck.json arLabel).
+    $('hint-label').textContent = cat.arLabel || '';
+    $('hint-label').hidden = !(cat.arLabel && card.ar);
     $('dispute').hidden = !(r.result === WRONG && !reveal);
     fb.hidden = false;
     animate(fb, 'pop-in');
@@ -346,7 +349,7 @@
   }
 
   function showStudyCard(dir) {
-    const { card } = cardIndex[study.order[study.pos]];
+    const { card, cat } = cardIndex[study.order[study.pos]];
     study.flipped = false;
     $('study-deck').hidden = false;
     $('study-end').hidden = true;
@@ -354,6 +357,8 @@
     $('study-en').textContent = card.en;
     $('study-es').textContent = card.es;
     $('study-ar').textContent = card.ar || '';
+    $('study-ar-label').textContent = cat.arLabel || '';
+    $('study-ar-label').hidden = !(cat.arLabel && card.ar);
     $('study-progress').textContent = `${study.pos + 1} / ${study.order.length}`;
     $('study-fill').style.width = `${((study.pos + 1) / study.order.length) * 100}%`;
     $('study-prev').disabled = study.pos === 0;

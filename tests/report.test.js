@@ -25,7 +25,8 @@ const text = buildReport(data, deck, NOW);
 
 test('header and box counts', () => {
   assert.match(text, /TRIDIOMA PROGRESS REPORT · 18 Oct 2026/);
-  assert.match(text, /Not seen yet: 98/);
+  const totalCards = deck.categories.reduce((n, c) => n + c.cards.length, 0);
+  assert.ok(text.includes(`Not seen yet: ${totalCards - Object.keys(cards).length}`));
   assert.match(text, /Box 4 \(8 days\): 6/);
   assert.match(text, /Box 0 \(0 days\): 1/);
 });

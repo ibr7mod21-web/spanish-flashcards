@@ -251,6 +251,32 @@ test('Core 1–100: spot checks (clarifiers, alts, feminine forms)', () => {
   assert.equal(grade('si', byEn.yes.card, 'core-01').result, 'close');
 });
 
+test('Core cards match their batch file tools/core/core-NN.tsv', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  for (const cat of core) {
+    const rows = fs.readFileSync(path.join(__dirname, '..', 'tools', 'core', `${cat.id}.tsv`), 'utf8')
+      .split('\n').filter((l) => l.trim() && !l.startsWith('#')).map((l) => l.split('\t'));
+    assert.equal(rows.length, cat.cards.length, `${cat.id}: row count`);
+    cat.cards.forEach((c, i) => {
+      const [en, es, alts = '', ar] = rows[i];
+      const alt = alts.split(',').map((a) => a.trim()).filter(Boolean);
+      assert.deepEqual([c.en, c.es, c.alt || [], c.ar], [en, es, alt, ar], c.id);
+    });
+  }
+});
+
+test('core-01 fixes (Oct 2026): extra alts, clearer English, Arabic for deber', () => {
+  const byId = Object.fromEntries(cards.map((x) => [x.card.id, x]));
+  const ok = (id, ans) => assert.equal(grade(ans, byId[id].card, 'core-01').result, 'correct', `${id}: ${ans}`);
+  ok('core-01-004', 'esto');
+  ok('core-01-006', 'eso');
+  ok('core-01-055', 'solamente');
+  assert.equal(byId['core-01-034'].card.ar, 'يجب / مَدين بـ');
+  assert.equal(byId['core-01-062'].card.en, 'to look at (on purpose)');
+  assert.equal(byId['core-01-093'].card.en, 'older / greater');
+});
+
 test('person nouns accept the feminine form', () => {
   const byEn = Object.fromEntries(cards.map((x) => [x.card.en, x]));
   const cases = [['doctor', 'médica'], ['doctor', 'doctora'], ['neighbor', 'vecina'], ['mayor', 'alcaldesa'], ['so-and-so', 'fulana']];

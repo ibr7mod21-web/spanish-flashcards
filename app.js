@@ -5,6 +5,7 @@
   const S = window.Scheduler;
   const FX = window.Feedback;
   const Settings = window.Settings;
+  const SyncLib = window.Sync;
 
   const PROGRESS_KEY = 'sf.progress.v1';
   const STUDIED_KEY = 'sf.studied.v1';
@@ -327,6 +328,7 @@
     lastCards = session.cards;
     session = null;
     show('done');
+    pushSoon();
     animate($('summary'), 'pop-in');
     feedback('fanfare');
   }
@@ -490,6 +492,9 @@
     showLastExport();
     $('export-box').hidden = true;
     $('import-box').hidden = true;
+    $('sync-msg').textContent = '';
+    $('sync-token').value = '';
+    updateSyncUI();
     show('settings');
   }
 
@@ -510,6 +515,7 @@
           e.target.checked = Settings.get(store(), key);
           return;
         }
+        pushSoon();
         // Preview what was just switched on (this tap also unlocks iOS audio).
         if (on && key === 'sound') { FX.unlockAudio(); FX.play('correct'); }
         if (on && key === 'autoSpeak') say('hola');
@@ -586,6 +592,7 @@
     msg.textContent = `Restored progress for ${n} card${n === 1 ? '' : 's'}.`;
     msg.classList.add('ok');
     $('import-text').value = '';
+    pushSoon();
   }
 
   // ---------- wiring ----------
@@ -617,7 +624,13 @@
     $('stats-back').addEventListener('click', renderHome);
     $('to-settings').addEventListener('click', renderSettings);
     $('settings-back').addEventListener('click', renderHome);
-    $('card-back').addEventListener('click', () => { $('answer').blur(); session = null; renderHome(); });
+    $('card-back').addEventListener('click', () => {
+      $('answer').blur();
+      const answered = session && session.tally.correct + session.tally.close + session.tally.wrong > 0;
+      session = null;
+      renderHome();
+      if (answered) pushSoon(); // leaving mid-session still counts as a session end for sync
+    });
     $('done-home').addEventListener('click', renderHome);
     $('done-again').addEventListener('click', () => startQueue(S.shuffle(lastCards), { practice: true }));
     $('dispute').addEventListener('click', dispute);
@@ -641,7 +654,7 @@
 
     // Study
     wireSwipe();
-    $('study-back').addEventListener('click', () => { study = null; renderHome(); });
+    $('study-back').addEventListener('click', () => { study = null; renderHome(); pushSoon(); });
     $('study-prev').addEventListener('click', () => studyStep(-1));
     $('study-next').addEventListener('click', () => studyStep(1));
     $('study-speak').addEventListener('click', () => { if (study) say(cardIndex[study.order[study.pos]].card.es); });
@@ -664,6 +677,73 @@
       $('import-msg').textContent = '';
     });
     $('import-go').addEventListener('click', doImport);
+
+    // Cloud sync
+    $('sync-connect').addEventListener('click', connectCloud);
+    $('sync-token').addEventListener('keydown', (e) => { if (e.key === 'Enter') connectCloud(); });
+    $('sync-now').addEventListener('click', () => { cloud.markPending(); cloud.sync(); });
+    $('sync-disconnect').addEventListener('click', () => {
+      cloud.disconnect();
+      $('sync-msg').textContent = 'Disconnected. The token is deleted; your progress stays on this iPhone.';
+      updateSyncUI();
+    });
+    window.addEventListener('online', () => { if (cloud && cloud.state().pending) cloud.sync(); });
+    // Reopening the home-screen app usually resumes it rather than reloading: treat that as "app open".
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible' || !cloud || !cloud.isConnected()) return;
+      const st = cloud.state();
+      if (st.pending || Date.now() - (st.lastSync || 0) > 60000) cloud.sync();
+    });
+    setInterval(() => { if (!$('settings').hidden) updateSyncUI(); }, 30000);
+  }
+
+  // ---------- cloud sync ----------
+  let cloud = null;
+
+  function localData() {
+    return { cards: progress, studied, settings: Settings.read(store()), settingsUpdatedAt: Settings.getUpdatedAt(store()) };
+  }
+
+  // Apply merged data. Merge again with what's local *now*, in case an answer landed while GitHub was busy.
+  function applyMerged(m) {
+    const fresh = SyncLib.mergeData(localData(), m);
+    progress = fresh.cards;
+    studied = fresh.studied;
+    saveProgress();
+    writeJSON(STUDIED_KEY, studied);
+    if (fresh.settings) Settings.replace(store(), fresh.settings, fresh.settingsUpdatedAt);
+    if (!$('home').hidden) renderHome();
+  }
+
+  // Push after a change. Runs in the background; never blocks the quiz.
+  function pushSoon() {
+    if (!cloud || !cloud.isConnected()) return;
+    cloud.markPending();
+    cloud.sync();
+  }
+
+  function updateSyncUI(state) {
+    if (!cloud) return;
+    const st = state || cloud.state();
+    $('sync-status').textContent = SyncLib.statusText(st, Date.now());
+    $('sync-setup').hidden = st.connected;
+    $('sync-connected').hidden = !st.connected;
+  }
+
+  async function connectCloud() {
+    const btn = $('sync-connect');
+    btn.disabled = true;
+    $('sync-msg').textContent = 'Checking the token…';
+    const r = await cloud.connect($('sync-token').value);
+    btn.disabled = false;
+    $('sync-msg').textContent = r.ok ? 'Connected. Syncing now…' : r.message;
+    if (r.ok) {
+      $('sync-token').value = '';
+      $('sync-token').blur();
+      await cloud.sync();
+      $('sync-msg').textContent = '';
+    }
+    updateSyncUI();
   }
 
   // ---------- boot ----------
@@ -686,7 +766,16 @@
     for (const cat of deck.categories) {
       for (const card of cat.cards) cardIndex[card.id] = { card, cat };
     }
+    cloud = SyncLib.createSync({
+      storage: store(),
+      fetchFn: (url, init) => fetch(url, init),
+      getLocal: localData,
+      setLocal: applyMerged,
+      deckVersion: () => deck.version,
+      onChange: (st) => { if (!$('settings').hidden) updateSyncUI(st); },
+    });
     renderHome();
+    cloud.sync(); // app open: pull and merge (in the background)
   }
 
   if ('serviceWorker' in navigator) {

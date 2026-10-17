@@ -101,5 +101,20 @@ test('last export date: junk or broken storage → null', () => {
   assert.equal(Settings.setLastExport(brokenStorage, Date.now()), false);
 });
 
+test('set() records when settings last changed', () => {
+  const st = fakeStorage();
+  assert.equal(Settings.getUpdatedAt(st), 0);
+  Settings.set(st, 'sound', false, 1234);
+  assert.equal(Settings.getUpdatedAt(st), 1234);
+});
+
+test('replace() applies synced settings and their timestamp, dropping junk', () => {
+  const st = fakeStorage();
+  Settings.replace(st, { sound: false, autoSpeak: false, token: 'nope' }, 999);
+  assert.deepEqual(Settings.read(st), { sound: false, autoSpeak: false });
+  assert.equal(Settings.getUpdatedAt(st), 999);
+  assert.ok(!st.data[Settings.KEY].includes('token'));
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

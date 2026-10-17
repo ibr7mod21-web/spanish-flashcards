@@ -6,6 +6,7 @@
 
   const KEY = 'sf.settings.v1';
   const LAST_EXPORT_KEY = 'sf.lastExport.v1';
+  const UPDATED_KEY = 'sf.settings.updatedAt'; // ms; lets cloud sync keep the newer settings
   const DEFAULTS = Object.freeze({ sound: true, autoSpeak: true });
 
   // Known keys with boolean values only; anything else (old "haptics", junk) falls back to defaults.
@@ -29,11 +30,29 @@
   }
 
   // Returns true if saved.
-  function set(storage, key, value) {
+  function set(storage, key, value, now) {
     if (!(key in DEFAULTS)) throw new Error('Unknown setting: ' + key);
     const s = read(storage);
     s[key] = !!value;
-    try { storage.setItem(KEY, JSON.stringify(s)); return true; } catch (e) { return false; }
+    try {
+      storage.setItem(KEY, JSON.stringify(s));
+      storage.setItem(UPDATED_KEY, String(now || Date.now()));
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function getUpdatedAt(storage) {
+    try { const n = Number(storage ? storage.getItem(UPDATED_KEY) : 0); return Number.isFinite(n) ? n : 0; } catch (e) { return 0; }
+  }
+
+  // Replace all settings at once (used when cloud sync brings newer settings).
+  function replace(storage, values, updatedAt) {
+    const s = parse(JSON.stringify(values || {}));
+    try {
+      storage.setItem(KEY, JSON.stringify(s));
+      storage.setItem(UPDATED_KEY, String(updatedAt || 0));
+      return true;
+    } catch (e) { return false; }
   }
 
   function getLastExport(storage) {
@@ -47,7 +66,7 @@
     try { storage.setItem(LAST_EXPORT_KEY, new Date(date).toISOString()); return true; } catch (e) { return false; }
   }
 
-  const api = { KEY, LAST_EXPORT_KEY, DEFAULTS, parse, read, get, set, getLastExport, setLastExport };
+  const api = { KEY, LAST_EXPORT_KEY, UPDATED_KEY, DEFAULTS, parse, read, get, set, getUpdatedAt, replace, getLastExport, setLastExport };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Settings = api;
 })(typeof self !== 'undefined' ? self : this);

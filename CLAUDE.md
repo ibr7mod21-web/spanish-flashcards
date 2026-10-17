@@ -11,8 +11,8 @@ Dialect: general Latin American-neutral Spanish (Duolingo style).
 
 ## Stack
 - Plain HTML/CSS/JS. No framework, no build step, no npm dependencies.
-- Files: `index.html`, `app.js` (UI), `grading.js`, `scheduler.js`, `feedback.js`, `settings.js`, `styles.css`, `manifest.webmanifest`, `sw.js`, `icons/`, `deck.json`.
-- Pure logic lives in `grading.js`, `scheduler.js`, `settings.js` and `pickVoice` in `feedback.js`; each works in the browser (`window.X`) and Node (`module.exports`).
+- Files: `index.html`, `app.js` (UI), `grading.js`, `scheduler.js`, `feedback.js`, `settings.js`, `sync.js`, `styles.css`, `manifest.webmanifest`, `sw.js`, `icons/`, `deck.json`.
+- Pure logic lives in `grading.js`, `scheduler.js`, `settings.js`, the merge/format half of `sync.js` and `pickVoice` in `feedback.js`; each works in the browser (`window.X`) and Node (`module.exports`).
 - Tests: `for f in tests/*.test.js; do node "$f" || break; done`. Add tests for any new pure logic.
 - `tests/html.test.js`: ids in index.html must be unique and every `$('id')` in app.js must exist. (A duplicate `id="weak"` once made Stats overwrite the Home "Weak words" button and broke every Home button.)
 - New script files must also be added to `SHELL` in `sw.js`.
@@ -47,7 +47,7 @@ Dialect: general Latin American-neutral Spanish (Duolingo style).
 3. **End of session**: plain heading "Session complete" / "Practice complete" with the score (right = correct + close), tiles, then **Home** (primary) and **Practice again** (practice round on the same cards).
 4. **Study**: flip cards (front: English only; back: Spanish large + Arabic smaller below, `lang="ar" dir="rtl"`; auto-speaks on flip). Swipe left/right or Next/Back, Shuffle. End: "Quiz me on these" quizzes that category (if nothing is due/new there, a practice round).
 5. **Stats** (stats only): cards per box, overall accuracy, 15 weakest cards (most recent misses).
-6. **Settings** (gear icon in the Home header): Sound effects, Auto-speak in Study; Backup with Export progress / Import progress and "Last export: <date>".
+6. **Settings** (gear icon in the Home header): Sound effects, Auto-speak in Study; **Cloud sync** (token field, Connect, status, Sync now, Disconnect); Backup with Export progress / Import progress and "Last export: <date>" (kept as the emergency backup).
 
 ## Grading (`grading.js`, pure functions, works in browser and Node)
 - Normalize: lowercase, trim, collapse spaces, strip `¿?¡!.,`
@@ -92,3 +92,18 @@ Small animations (slide-in, answer flash, pop-in, shake, progress bar, card flip
 - Header band runs under the status bar (`apple-mobile-web-app-status-bar-style: black-translucent`).
 - Feedback: CORRECT teal (`--correct`), CLOSE amber (`--close`), WRONG red (`--wrong`), each with a `-bg` and `-flash` variant.
 - `tests/contrast.test.js` reads the tokens from styles.css and checks WCAG AA in light and dark; keep it passing when changing colours.
+
+## Cloud sync (`sync.js`)
+- Private repo **`ibr7mod21-web/tridioma-data`**, one file **`progress.json`**: the Export JSON (`exportedAt, deckVersion, cards, studied, disputed`) plus `settings` and `settingsUpdatedAt`.
+- Auth: a GitHub **fine-grained token** with access to only tridioma-data, permission Contents: Read and write, nothing else. Pasted in Settings, checked with `GET /repos/…`, then stored **only** in localStorage under `sf.sync.token`.
+- **The token must never** appear in this public repo, the code, logs, status text, the export, or progress.json. `tests/sync.test.js` checks the file/requests/state; `tests/secrets.test.js` scans every tracked file for token-shaped strings. Disconnect deletes it.
+- When: on app open (`boot` and `visibilitychange` → visible), after each session ends (finish, or leaving mid-session with answers), after leaving Study, after settings change, after Import, and when the device comes back `online`. Always in the background; never blocks the UI.
+- Flow (`createSync().sync()`): GET file (404 = none yet) → `mergeData(local, remote)` → apply locally (re-merged with current local, so an answer given meanwhile isn't lost) → PUT with the file's `sha` only if something changed. On 409/422 (another device wrote since the GET): re-pull, merge, retry once. Network failure → `pending` + "Offline, will retry".
+- **Merge rules** (`mergeData`): per card, the record with the newer `lastSeen` wins (tie → local); `disputed` = union, one entry per answer (case-insensitive), earliest date; `studied` = union, earliest time; settings = the side with the newer `settingsUpdatedAt` (set by `Settings.set`).
+- Sync state (`lastSync`, `pending`) in `sf.sync.state`. GitHub's API is cross-origin, so the service worker doesn't touch these requests.
+
+## Tutor report
+- `node tools/progress_report.js` downloads progress.json from tridioma-data with `gh` (the Mac's gh login, not the phone's token) and prints a plain-text report to paste to the tutor: cards per box, accuracy, categories (mastered = every card at box 4+), the 20 weakest cards (`weakQueue`) with the wrong answers typed, and disputed "I was right" answers.
+- `node tools/progress_report.js --file export.json` does the same from a manual export.
+- When the owner asks for "the tutor report", run it and give them the output.
+

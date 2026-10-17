@@ -1,5 +1,5 @@
 // Bump CACHE_VERSION on every app change (html/css/js/icons/manifest).
-const CACHE_VERSION = 'v7';
+const CACHE_VERSION = 'v8';
 const CACHE = 'sf-' + CACHE_VERSION;
 
 const SHELL = [
@@ -10,6 +10,7 @@ const SHELL = [
   'scheduler.js',
   'feedback.js',
   'settings.js',
+  'sync.js',
   'app.js',
   'manifest.webmanifest',
   'deck.json',

@@ -221,6 +221,23 @@
       <p class="small" id="set-msg"></p>
     </section>
 
+    <section class="panel" id="sync-panel">
+      <h3>Cloud sync</h3>
+      <p class="sync-status" id="sync-status">Not connected</p>
+      <div id="sync-setup">
+        <label class="field-label" for="sync-token">GitHub token for tridioma-data</label>
+        <input class="field" id="sync-token" type="password" placeholder="github_pat_…"
+               autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <button class="primary connect" id="sync-connect" type="button">Connect</button>
+        <p class="muted small">Saved only on this iPhone. It never goes into the app’s code, your exports or the synced file.</p>
+      </div>
+      <div class="row" id="sync-connected" hidden>
+        <button class="secondary" id="sync-now" type="button">Sync now</button>
+        <button class="secondary" id="sync-disconnect" type="button">Disconnect</button>
+      </div>
+      <p class="small" id="sync-msg"></p>
+    </section>
+
     <section class="panel">
       <h3>Backup</h3>
       <p class="muted small">iOS can clear web app storage. Export your progress now and then, and keep the text somewhere safe (Notes, Files).</p>
@@ -246,6 +263,7 @@
   <script src="scheduler.js"></script>
   <script src="feedback.js"></script>
   <script src="settings.js"></script>
+  <script src="sync.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -418,6 +418,27 @@ textarea {
 .toggle-note { display: block; margin-top: 2px; }
 .toggle { padding: 8px 0; }
 .last-export { margin: 4px 0 12px; font-weight: 600; }
+.sync-status { margin: 0 0 12px; font-weight: 600; }
+.field-label { display: block; font-size: 0.9rem; margin-bottom: 6px; }
+.field {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 1rem; /* ≥16px so iOS doesn't zoom */
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.field:focus { border-color: var(--accent); }
+.connect { width: 100%; margin: 10px 0 8px; }
+#sync-panel .row > * { white-space: nowrap; }
+#sync-msg:empty { display: none; }
+#sync-msg { margin: 10px 0 0; }
 #set-msg:empty { display: none; }
 .toggle input { width: 22px; height: 22px; margin: 0; accent-color: var(--accent); flex-shrink: 0; }
 .toggle input[switch] { width: auto; height: auto; }

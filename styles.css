@@ -98,7 +98,8 @@ html, body {
 .bar .muted { color: rgba(255, 255, 255, 0.85); }
 #home .bar { grid-template-columns: 1fr auto; padding-bottom: 20px; }
 #done .bar { grid-template-columns: 1fr; }
-#done .bar h1 { justify-self: start; }
+.brand-name { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.01em; }
+#done .bar .brand { justify-self: start; }
 #stats .bar h1, #custom .bar h1 { font-size: 1.1rem; }
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand img { width: 40px; height: 34px; display: block; }
@@ -149,7 +150,8 @@ button:disabled { opacity: 0.45; cursor: default; }
 .cat-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .cat-name { font-weight: 600; }
 .cat-actions { display: flex; gap: 10px; }
-.cat-actions > * { flex: 1; min-height: 46px; }
+.cat-note { margin: -4px 0 0; }
+.cat-actions > * { flex: 1; min-height: 46px; padding: 0 12px; white-space: nowrap; font-size: 0.95rem; }
 .cat-actions .secondary { background: var(--bg); }
 .counts { display: flex; gap: 6px; flex-shrink: 0; }
 .pill {
@@ -334,6 +336,11 @@ button:disabled { opacity: 0.45; cursor: default; }
 .study-end p { margin: 0 0 12px; }
 
 /* Done */
+.done-head { text-align: center; padding-top: 20px; }
+.done-head h2 { margin: 0; font-size: 1.9rem; letter-spacing: -0.02em; }
+.done-score { margin: 6px 0 0; font-size: 1.1rem; color: var(--muted); }
+.done-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.dispute { margin-top: 8px; min-height: 44px; padding: 0 12px; text-decoration: underline; text-underline-offset: 3px; }
 .summary {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

@@ -111,6 +111,7 @@
       </p>
       <p class="yours muted small" id="yours"></p>
       <p class="hint" id="hint" lang="ar" dir="rtl"></p>
+      <button class="link small dispute" id="dispute" type="button" hidden>I was right</button>
     </section>
   </main>
 
@@ -154,10 +155,22 @@
 
   <!-- SESSION DONE -->
   <main id="done" class="screen" hidden>
-    <header class="bar"><h1>Done</h1></header>
+    <header class="bar">
+      <div class="brand">
+        <img src="icons/raven-white.svg" alt="" width="40" height="34">
+        <span class="brand-name">Tridioma</span>
+      </div>
+    </header>
+    <section class="done-head">
+      <h2 id="done-title">Session complete</h2>
+      <p class="done-score" id="done-score"></p>
+    </section>
     <div class="summary" id="summary"></div>
     <p class="muted small center-text" id="done-note"></p>
-    <button class="primary big" id="done-home" type="button">Home</button>
+    <div class="done-actions">
+      <button class="primary big" id="done-home" type="button">Home</button>
+      <button class="secondary big" id="done-again" type="button">Practice again</button>
+    </div>
   </main>
 
   <!-- STATS -->

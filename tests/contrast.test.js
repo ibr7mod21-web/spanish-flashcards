@@ -38,6 +38,7 @@ const PAIRS = [
   ['muted', 'correct-bg', 4.5], ['muted', 'close-bg', 4.5], ['muted', 'wrong-bg', 4.5],
   ['correct', 'surface', 4.5], ['close', 'surface', 4.5], ['wrong', 'surface', 4.5],
   ['correct', 'bg', 3], ['close', 'bg', 3], ['wrong', 'bg', 3], // input borders
+  ['accent', 'wrong-bg', 4.5], // "I was right" link on the red panel
 ];
 
 let failed = 0;

@@ -90,12 +90,29 @@ test('English prompts are unique (ambiguous words have a clarifier)', () => {
 test('alts from the spec are accepted', () => {
   const byEn = Object.fromEntries(cards.map((x) => [x.card.en, x]));
   const cases = [['orange (color)', 'anaranjado'], ['pink', 'rosado'], ['brown', 'café'], ['mother', 'mamá'],
-    ['father', 'papá'], ['to drink', 'tomar']];
+    ['father', 'papá'], ['to drink', 'tomar'], ['red', 'colorado'], ['purple', 'violeta'], ['purple', 'púrpura'],
+    ['husband', 'marido']];
   for (const [en, ans] of cases) {
     const { card, cat } = byEn[en];
     assert.equal(grade(ans, card, cat.id).result, 'correct', `${en}: ${ans}`);
   }
   assert.equal(grade('papa', byEn.father.card, 'family').result, 'close');
+});
+
+test('existing alts are kept', () => {
+  const alts = Object.fromEntries(cards.map((x) => [x.card.id, x.card.alt || []]));
+  const keep = { 'num-01': ['un', 'una'], 'num-16': ['diez y seis'], 'mon-09': ['setiembre'], 'col-08': ['anaranjado'],
+    'col-09': ['rosado'], 'col-11': ['café'], 'fam-01': ['mamá'], 'fam-02': ['papá'], 'verb-14': ['tomar'] };
+  for (const [id, want] of Object.entries(keep)) for (const w of want) assert.ok(alts[id].includes(w), `${id} lost alt ${w}`);
+});
+
+test('an alt never equals another card\'s answer in the same category', () => {
+  for (const cat of deck.categories) {
+    const main = new Map(cat.cards.map((c) => [c.es, c.id]));
+    for (const c of cat.cards) for (const a of c.alt || []) {
+      assert.ok(!main.has(a) || main.get(a) === c.id, `${c.id} alt "${a}" is ${main.get(a)}'s answer`);
+    }
+  }
 });
 
 test('Arabic-origin words show the Arabic root word', () => {

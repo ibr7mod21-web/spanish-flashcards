@@ -219,6 +219,94 @@ test('customQueue: mixes categories (seeded)', () => {
   assert.ok(q.some((id) => id.startsWith('a-')) && q.some((id) => id.startsWith('b-')));
 });
 
+console.log('practice rule');
+
+test('practice CORRECT: counts, but box and due unchanged', () => {
+  const prev = stats(3, TODAY + 4 * DAY);
+  const s = S.applyResult(prev, 'correct', 'x', NOW, { practice: true });
+  assert.equal(s.box, 3);
+  assert.equal(s.due, TODAY + 4 * DAY);
+  assert.equal(s.correct, 1);
+  assert.equal(s.seen, 2);
+  assert.deepEqual(s.recent, ['correct']);
+});
+
+test('practice CLOSE: counts as close and a miss, box and due unchanged', () => {
+  const s = S.applyResult(stats(2, TODAY + DAY), 'close', 'x', NOW, { practice: true });
+  assert.equal(s.box, 2);
+  assert.equal(s.due, TODAY + DAY);
+  assert.equal(s.close, 1);
+  assert.equal(s.lastMissAt, NOW);
+});
+
+test('practice WRONG: still drops to box 0, due now, counts as a miss', () => {
+  const s = S.applyResult(stats(4, TODAY + 8 * DAY), 'wrong', 'mal', NOW, { practice: true });
+  assert.equal(s.box, 0);
+  assert.equal(s.due, NOW);
+  assert.equal(s.wrong, 1);
+  assert.deepEqual(s.lastWrongAnswers, ['mal']);
+  assert.equal(S.isWeak(s), true);
+});
+
+test('normal mode unchanged when practice is off', () => {
+  assert.equal(S.applyResult(stats(3, 0), 'correct', 'x', NOW, { practice: false }).box, 4);
+});
+
+test('nextReviewDays: whole days to the earliest scheduled card', () => {
+  const p = { 'a-0': stats(2, TODAY + 2 * DAY), 'a-1': stats(4, TODAY + 8 * DAY) };
+  assert.equal(S.nextReviewDays([cat('a', 3)], p, NOW), 2);
+  assert.equal(S.nextReviewDays([cat('a', 3)], { 'a-0': stats(1, TODAY + DAY) }, NOW), 1);
+});
+
+test('nextReviewDays: nothing seen → null', () => {
+  assert.equal(S.nextReviewDays([cat('a', 3)], {}, NOW), null);
+});
+
+test('Practice anyway: up to 20 random cards from the category, due or not', () => {
+  const p = {};
+  for (let i = 0; i < 30; i++) p[`a-${i}`] = stats(3, TODAY + 4 * DAY);
+  const q = S.customQueue([cat('a', 30)], S.SESSION_MAX);
+  assert.equal(q.length, 20);
+  assert.equal(new Set(q).size, 20);
+});
+
+console.log('disputed answers');
+
+test('disputeResult: graded as CORRECT from the stats before the miss', () => {
+  const before = stats(2, TODAY + DAY);
+  const s = S.disputeResult(before, ' colorada ', NOW);
+  assert.equal(s.box, 3);
+  assert.equal(s.wrong, 0);
+  assert.equal(s.correct, 1);
+  assert.deepEqual(s.lastWrongAnswers, []);
+  assert.deepEqual(s.disputed, [{ answer: 'colorada', date: new Date(NOW).toISOString() }]);
+});
+
+test('disputeResult in practice: counts as correct, box unchanged', () => {
+  const s = S.disputeResult(stats(2, TODAY + DAY), 'x', NOW, { practice: true });
+  assert.equal(s.box, 2);
+  assert.equal(s.correct, 1);
+});
+
+test('disputeResult appends to earlier disputes', () => {
+  let s = S.disputeResult(undefined, 'a', NOW);
+  s = S.disputeResult(s, 'b', NOW + 1000);
+  assert.deepEqual(s.disputed.map((d) => d.answer), ['a', 'b']);
+});
+
+test('collectDisputed: flat list with card ids, oldest first', () => {
+  const p = {
+    'col-01': Object.assign(stats(1, 0), { disputed: [{ answer: 'colorada', date: '2026-10-18T10:00:00.000Z' }] }),
+    'fam-13': Object.assign(stats(1, 0), { disputed: [{ answer: 'marido', date: '2026-10-17T09:00:00.000Z' }] }),
+    'num-01': stats(1, 0),
+  };
+  assert.deepEqual(S.collectDisputed(p), [
+    { cardId: 'fam-13', answer: 'marido', date: '2026-10-17T09:00:00.000Z' },
+    { cardId: 'col-01', answer: 'colorada', date: '2026-10-18T10:00:00.000Z' },
+  ]);
+  assert.deepEqual(S.collectDisputed({}), []);
+});
+
 console.log('feedback.js pickVoice');
 
 const v = (name, lang, localService = true) => ({ name, lang, localService });

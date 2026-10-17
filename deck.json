@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "dialect": "general",
   "categories": [
     {
@@ -64,7 +64,7 @@
       "id": "colors",
       "name": "Colors",
       "cards": [
-        { "id": "col-01", "en": "red", "es": "rojo", "ar": "أحمر" },
+        { "id": "col-01", "en": "red", "es": "rojo", "alt": ["colorado"], "ar": "أحمر" },
         { "id": "col-02", "en": "blue", "es": "azul", "ar": "أزرق" },
         { "id": "col-03", "en": "green", "es": "verde", "ar": "أخضر" },
         { "id": "col-04", "en": "yellow", "es": "amarillo", "ar": "أصفر" },
@@ -73,7 +73,7 @@
         { "id": "col-07", "en": "gray", "es": "gris", "ar": "رمادي" },
         { "id": "col-08", "en": "orange (color)", "es": "naranja", "alt": ["anaranjado"], "ar": "برتقالي" },
         { "id": "col-09", "en": "pink", "es": "rosa", "alt": ["rosado"], "ar": "وردي" },
-        { "id": "col-10", "en": "purple", "es": "morado", "ar": "بنفسجي" },
+        { "id": "col-10", "en": "purple", "es": "morado", "alt": ["violeta", "púrpura"], "ar": "بنفسجي" },
         { "id": "col-11", "en": "brown", "es": "marrón", "alt": ["café"], "ar": "بني" }
       ]
     },
@@ -93,7 +93,7 @@
         { "id": "fam-10", "en": "aunt", "es": "tía", "ar": "عمة / خالة" },
         { "id": "fam-11", "en": "cousin (male)", "es": "primo", "ar": "ابن العم / ابن الخال" },
         { "id": "fam-12", "en": "cousin (female)", "es": "prima", "ar": "بنت العم / بنت الخال" },
-        { "id": "fam-13", "en": "husband", "es": "esposo", "ar": "زوج" },
+        { "id": "fam-13", "en": "husband", "es": "esposo", "alt": ["marido"], "ar": "زوج" },
         { "id": "fam-14", "en": "wife", "es": "esposa", "ar": "زوجة" }
       ]
     },

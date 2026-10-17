@@ -60,7 +60,9 @@
   }
 
   // Returns updated stats for one answer. result: 'correct' | 'close' | 'wrong'.
-  function applyResult(prev, result, answer, now) {
+  // practice: CORRECT/CLOSE still count (seen, correct/close, recent) but don't move the box or due date;
+  // WRONG still drops the card to box 0. So practice can't be used to game the schedule.
+  function applyResult(prev, result, answer, now, { practice = false } = {}) {
     const s = Object.assign(newStats(), prev || {});
     s.lastWrongAnswers = (s.lastWrongAnswers || []).slice();
     s.recent = [result].concat(s.recent || []).slice(0, RECENT);
@@ -75,10 +77,42 @@
       s.lastWrongAnswers = [String(answer || '').trim() || '—'].concat(s.lastWrongAnswers).slice(0, 3);
     } else {
       if (result === 'correct') s.correct++; else s.close++;
-      s.box = Math.min(MAX_BOX, (s.box || 0) + 1);
-      s.due = startOfDay(now) + INTERVALS[s.box] * DAY;
+      if (!practice) {
+        s.box = Math.min(MAX_BOX, (s.box || 0) + 1);
+        s.due = startOfDay(now) + INTERVALS[s.box] * DAY;
+      }
     }
     return s;
+  }
+
+  // Whole days until the earliest scheduled review among cards that have been seen (null if none).
+  function nextReviewDays(categories, progress, now) {
+    let min = Infinity;
+    for (const cat of categories) {
+      for (const card of cat.cards) {
+        const s = progress[card.id];
+        if (s && s.due < min) min = s.due;
+      }
+    }
+    if (min === Infinity) return null;
+    return Math.max(0, Math.round((startOfDay(min) - startOfDay(now)) / DAY));
+  }
+
+  // "I was right": the stats as if the answer had been CORRECT, plus a disputed-answer record.
+  // prev: the stats from *before* the WRONG answer was applied.
+  function disputeResult(prev, answer, now, opts) {
+    const s = applyResult(prev, 'correct', answer, now, opts);
+    s.disputed = (s.disputed || []).concat([{ answer: String(answer).trim(), date: new Date(now).toISOString() }]);
+    return s;
+  }
+
+  // Every disputed answer, oldest first, for the export: [{ cardId, answer, date }].
+  function collectDisputed(progress) {
+    const out = [];
+    for (const [cardId, s] of Object.entries(progress || {})) {
+      for (const d of (s && s.disputed) || []) out.push({ cardId, answer: d.answer, date: d.date });
+    }
+    return out.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   }
 
   // Weak: missed and still in box 0–1, or a CLOSE/WRONG among the last 3 attempts.
@@ -127,7 +161,7 @@
   const api = {
     INTERVALS, MAX_BOX, SESSION_MAX, SESSION_NEW, WEAK_MAX, DAY,
     startOfDay, isDue, buildQueue, reviewAllQueue, newStats, applyResult, requeueIndex, shuffle,
-    isWeak, weakQueue, customQueue,
+    isWeak, weakQueue, customQueue, nextReviewDays, disputeResult, collectDisputed,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Scheduler = api;

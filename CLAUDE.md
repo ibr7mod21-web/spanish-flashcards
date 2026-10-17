@@ -31,6 +31,7 @@ Dialect: general Latin American-neutral Spanish (Duolingo style).
 ```
 - Card ids are permanent; progress is keyed by id. **Never renumber or reuse ids.** New cards get new ids.
 - `tests/known-ids.txt` lists every published id (`category id`). Append new ids there; never delete or edit lines. The deck test fails if an id disappears or moves category.
+- `alt` only for synonyms that are right in general Latin American use (e.g. rojo/colorado, morado/violeta/púrpura, esposo/marido); skip regional or context-only words. Tests check existing alts are kept and that no alt is another card's answer in the same category.
 - Ambiguous English gets a clarifier in brackets, e.g. `orange (color)` / `orange (fruit)`; English prompts must be unique (tested).
 - Categories: days, numbers, months, colors (`col-`), family (`fam-`), food (`food-`), verbs (`verb-`). Verbs' `ar` uses the Arabic dictionary form (past, 3rd person masc.). Arabic-origin Spanish words show the Arabic root (azúcar → السكر, aceite → الزيت, arroz → الرز).
 - `alt`: other accepted answers. `ar`: Arabic translation (every card has one; `tests/deck.test.js` enforces it). Months use the يناير…ديسمبر names.
@@ -40,9 +41,11 @@ Dialect: general Latin American-neutral Spanish (Duolingo style).
 1. **Home**: "Review all due", then **Custom quiz** and **Weak words** (count badge; disabled with "No weak words yet" when there are none), then the category list with due/new counts and **Study** / **Quiz** buttons.
    - **Custom quiz** screen: category checkboxes (Select all / Clear), count 10 / 20 / 30 / All; random mix via `customQueue`, due or not; results update the schedule normally. Last choice saved in `sf.custom.v1`.
    - **Weak words**: `weakQueue`, max 20, most recent miss first, ignores due dates.
-2. **Card**: English word large. Text input with `autocapitalize="off" autocorrect="off" spellcheck="false" lang="es"`. Check button; Enter submits. After answering, the button becomes Next (Enter also advances). "Show answer" counts as wrong.
-3. **Study**: flip cards (front: English only; back: Spanish large + Arabic smaller below, `lang="ar" dir="rtl"`; auto-speaks on flip). Swipe left/right or Next/Back, Shuffle. End: "Quiz me on these" quizzes that category (if nothing is due/new there, a *practice* round on the studied cards that does not change the schedule).
-4. **Stats**: settings toggles (Sound, Haptics, Auto-speak in Study), cards per box, overall accuracy, 15 weakest cards (most recent misses), Export and Import.
+   - Category with nothing due or new: button reads **Practice anyway**, with "All caught up · next review in X days" (`nextReviewDays`). Practice = up to 20 random cards from the category, scored with the practice rule.
+2. **Card** (quiz): English word large. Text input with `autocapitalize="off" autocorrect="off" spellcheck="false" lang="es"`. Check button; Enter submits. After answering, the button becomes Next (Enter also advances). "Show answer" counts as wrong. On a typed WRONG answer, an **I was right** link regrades it as CORRECT (`disputeResult`, from the stats before the miss), drops the requeued copy, and stores `{answer, date}` in the card's `disputed` list.
+3. **End of session**: plain heading "Session complete" / "Practice complete" with the score (right = correct + close), tiles, then **Home** (primary) and **Practice again** (practice round on the same cards).
+4. **Study**: flip cards (front: English only; back: Spanish large + Arabic smaller below, `lang="ar" dir="rtl"`; auto-speaks on flip). Swipe left/right or Next/Back, Shuffle. End: "Quiz me on these" quizzes that category (if nothing is due/new there, a practice round).
+5. **Stats**: settings toggles (Sound, Haptics, Auto-speak in Study), cards per box, overall accuracy, 15 weakest cards (most recent misses), Export and Import.
 
 ## Grading (`grading.js`, pure functions, works in browser and Node)
 - Normalize: lowercase, trim, collapse spaces, strip `¿?¡!.,`
@@ -57,11 +60,12 @@ Dialect: general Latin American-neutral Spanish (Duolingo style).
 - CORRECT or CLOSE → box+1 (max 5). WRONG → box 0, and requeue the card 3–5 cards later in the same session.
 - Session = due cards (lowest box first) + up to 8 new cards, max 20 total. New cards already **studied** fill the new-card slots first.
 - Per card: `box, due, seen, correct, close, wrong, lastWrongAnswers` (last 3), `lastSeen`, plus `lastWrongAt` (ranks Stats "weakest"), `recent` (last 3 results, newest first) and `lastMissAt` (last CLOSE or WRONG).
+- **Practice rule** (`applyResult(..., { practice: true })`): WRONG still drops to box 0 / due now and counts as a miss; CORRECT/CLOSE count toward stats but don't change box or due date. Used by Practice anyway, Practice again and Study → quiz when nothing is due.
 - **Weak** (`isWeak`): `wrong > 0 && box <= 1`, OR a CLOSE/WRONG in `recent`. Older stats without `recent` still match the first rule; ranking falls back to `lastWrongAt`.
 
 ## Storage
 - localStorage, every read/write wrapped in try/catch. Keys: `sf.progress.v1` (`{ [cardId]: stats }`), `sf.studied.v1` (`{ [cardId]: timestamp }`, kept separate so studied cards still count as new), `sf.settings.v1` (`{sound, haptics, autoSpeak}`), `sf.custom.v1` (`{cats, count}`), `sf.tipShown`.
-- Export: `{exportedAt, deckVersion, cards: {id: stats}, studied}` → copy to clipboard + iOS share sheet (`navigator.share`), fallback: selectable text box.
+- Export: `{exportedAt, deckVersion, cards: {id: stats}, studied, disputed: [{cardId, answer, date}]}` (`collectDisputed`; for the tutor to review and turn into real `alt`s) → copy to clipboard + iOS share sheet (`navigator.share`), fallback: selectable text box.
 - Import: paste JSON to restore progress (iOS can clear web storage).
 
 ## Voice

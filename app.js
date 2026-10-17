@@ -96,21 +96,21 @@
       const { due, fresh } = counts(cat.id);
       const li = document.createElement('li');
       li.className = 'cat';
+      const caughtUp = !due && !fresh;
       li.innerHTML =
         '<div class="cat-top"><span class="cat-name"></span><span class="counts">' +
         (due ? `<span class="pill due">${due} due</span>` : '') +
         (fresh ? `<span class="pill">${fresh} new</span>` : '') +
-        (!due && !fresh ? '<span class="pill">✓ done</span>' : '') +
         '</span></div>' +
+        (caughtUp ? '<p class="cat-note muted small"></p>' : '') +
         '<div class="cat-actions">' +
         '<button type="button" class="secondary" data-act="study">Study</button>' +
-        '<button type="button" class="primary" data-act="quiz">Quiz</button>' +
+        `<button type="button" class="primary" data-act="quiz">${caughtUp ? 'Practice anyway' : 'Quiz'}</button>` +
         '</div>';
       li.querySelector('.cat-name').textContent = cat.name;
+      if (caughtUp) li.querySelector('.cat-note').textContent = `All caught up · next review ${inDays(S.nextReviewDays([cat], progress, Date.now()))}`;
       li.querySelector('[data-act="study"]').addEventListener('click', () => startStudy(cat.id));
-      const quiz = li.querySelector('[data-act="quiz"]');
-      quiz.disabled = !due && !fresh;
-      quiz.addEventListener('click', () => startSession(cat.id));
+      li.querySelector('[data-act="quiz"]').addEventListener('click', () => (caughtUp ? startPractice(cat.id) : startSession(cat.id)));
       list.appendChild(li);
     }
     const all = counts(null);
@@ -127,23 +127,35 @@
     show('home');
   }
 
+  function inDays(n) {
+    if (n === null || n <= 0) return 'today';
+    return n === 1 ? 'tomorrow' : `in ${n} days`;
+  }
+
   // ---------- quiz session ----------
   let session = null;
 
-  // catId null = "Review all due". practiceIds: quiz these cards without changing progress.
-  function startSession(catId, practiceIds) {
+  // catId null = "Review all due".
+  function startSession(catId) {
     const now = Date.now();
-    let queue;
-    if (practiceIds) queue = practiceIds.slice(0, S.SESSION_MAX);
-    else if (catId === null) queue = S.reviewAllQueue(deck.categories, progress, now);
-    else queue = S.buildQueue(cardsIn(catId), progress, studied, now);
-    startQueue(queue, { practice: !!practiceIds });
+    const queue = catId === null
+      ? S.reviewAllQueue(deck.categories, progress, now)
+      : S.buildQueue(cardsIn(catId), progress, studied, now);
+    startQueue(queue);
   }
 
-  // Run a quiz over these card ids. practice: don't change progress.
+  // "Practice anyway": up to 20 random cards from the category, ignoring due dates.
+  function startPractice(catId) {
+    startQueue(S.customQueue(cardsIn(catId), S.SESSION_MAX), { practice: true });
+  }
+
+  // Run a quiz over these card ids. practice: right answers don't move cards up (see Scheduler.applyResult).
   function startQueue(queue, { practice = false } = {}) {
     if (!queue.length) { renderHome(); return; }
-    session = { queue, pos: 0, practice, tally: { correct: 0, close: 0, wrong: 0 }, answered: false };
+    session = {
+      queue, pos: 0, practice, cards: [...new Set(queue)],
+      tally: { correct: 0, close: 0, wrong: 0 }, answered: false, last: null,
+    };
     show('card');
     maybeShowTip();
     showCard();
@@ -238,15 +250,17 @@
     // No auto-speak in the quiz: the 🔊 button replays on demand.
     feedback(r.result);
 
-    if (!session.practice) {
-      progress[card.id] = S.applyResult(progress[card.id], r.result, answer, Date.now());
-      saveProgress();
-    }
+    const before = progress[card.id];
+    progress[card.id] = S.applyResult(before, r.result, answer, Date.now(), { practice: session.practice });
+    saveProgress();
     session.tally[r.result]++;
     session.answered = true;
+    session.last = { id: card.id, before, answer, result: r.result, requeueAt: -1 };
 
     if (r.result === WRONG) {
-      session.queue.splice(S.requeueIndex(session.pos, session.queue.length), 0, card.id);
+      const at = S.requeueIndex(session.pos, session.queue.length);
+      session.queue.splice(at, 0, card.id);
+      session.last.requeueAt = at;
     }
 
     input.readOnly = true;
@@ -260,6 +274,7 @@
     const showYours = !reveal && r.result !== CORRECT;
     $('yours').textContent = showYours ? `You wrote: ${answer.trim()}` : '';
     $('hint').textContent = card.ar || '';
+    $('dispute').hidden = !(r.result === WRONG && !reveal);
     fb.hidden = false;
     animate(fb, 'pop-in');
     $('action').textContent = 'Next';
@@ -268,20 +283,48 @@
     input.focus(); // keep the keyboard up so Enter → Next
   }
 
+  // "I was right": regrade the last WRONG as CORRECT and keep the answer for the tutor to review.
+  function dispute() {
+    const L = session && session.last;
+    if (!L || L.result !== WRONG || !session.answered) return;
+    progress[L.id] = S.disputeResult(L.before, L.answer, Date.now(), { practice: session.practice });
+    saveProgress();
+    session.tally.wrong--;
+    session.tally.correct++;
+    if (L.requeueAt > session.pos && session.queue[L.requeueAt] === L.id) session.queue.splice(L.requeueAt, 1);
+    L.result = CORRECT;
+
+    $('answer').className = 'correct';
+    $('feedback').className = 'feedback correct';
+    $('verdict').textContent = 'Marked correct · saved for review';
+    $('dispute').hidden = true;
+    updateProgress();
+    $('answer').focus();
+  }
+
   function next() {
     session.pos++;
     if (session.pos >= session.queue.length) finishSession();
     else showCard();
   }
 
+  let lastCards = [];
+
   function finishSession() {
     $('answer').blur();
     const t = session.tally;
+    const total = t.correct + t.close + t.wrong;
+    const right = t.correct + t.close;
+    $('done-title').textContent = session.practice ? 'Practice complete' : 'Session complete';
+    $('done-score').textContent = `${right} of ${total} right · ${total ? Math.round((right / total) * 100) : 0}%`;
     $('summary').innerHTML =
       `<div class="g"><b>${t.correct}</b>correct</div>` +
       `<div class="a"><b>${t.close}</b>close</div>` +
       `<div class="r"><b>${t.wrong}</b>missed</div>`;
-    $('done-note').textContent = session.practice ? 'Practice round: your schedule was not changed.' : '';
+    $('done-note').textContent = session.practice
+      ? 'Practice round: right answers don’t move cards up; misses still count.'
+      : '';
+    lastCards = session.cards;
     session = null;
     show('done');
     animate($('summary'), 'pop-in');
@@ -348,9 +391,9 @@
     const { catId, order } = study;
     const queue = S.buildQueue(cardsIn(catId), progress, studied, Date.now());
     study = null;
-    // Nothing due or new in this category: run a practice round on the studied cards instead.
+    // Nothing due or new in this category: practice it instead.
     if (queue.length) startSession(catId);
-    else startSession(catId, S.shuffle(order));
+    else startPractice(catId);
   }
 
   function toggleShuffle() {
@@ -460,7 +503,10 @@
 
   // ---------- export / import ----------
   async function doExport() {
-    const text = JSON.stringify({ exportedAt: new Date().toISOString(), deckVersion: deck.version, cards: progress, studied }, null, 1);
+    const text = JSON.stringify({
+      exportedAt: new Date().toISOString(), deckVersion: deck.version, cards: progress, studied,
+      disputed: S.collectDisputed(progress), // answers marked "I was right", for the tutor to review
+    }, null, 1);
     const box = $('export-text');
     box.value = text;
     $('export-box').hidden = false;
@@ -553,6 +599,8 @@
     $('stats-back').addEventListener('click', renderHome);
     $('card-back').addEventListener('click', () => { $('answer').blur(); session = null; renderHome(); });
     $('done-home').addEventListener('click', renderHome);
+    $('done-again').addEventListener('click', () => startQueue(S.shuffle(lastCards), { practice: true }));
+    $('dispute').addEventListener('click', dispute);
 
     $('answer-form').addEventListener('submit', (e) => {
       e.preventDefault();

@@ -86,7 +86,8 @@ html, body {
   align-items: center;
   min-height: 52px;
   margin: 0 calc(-1 * var(--pad-r)) 0 calc(-1 * var(--pad-l));
-  padding: calc(env(safe-area-inset-top) + 6px) var(--pad-r) 8px var(--pad-l);
+  /* Clear the status bar / Dynamic Island, then 12px of breathing room */
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) var(--pad-r) 14px var(--pad-l);
   background: var(--grad);
   color: var(--on-grad);
 }
@@ -95,7 +96,7 @@ html, body {
 .bar h1 { margin: 0; font-size: 1.6rem; letter-spacing: -0.01em; }
 .bar .link { color: var(--on-grad); }
 .bar .muted { color: rgba(255, 255, 255, 0.85); }
-#home .bar { grid-template-columns: 1fr auto; padding-bottom: 14px; }
+#home .bar { grid-template-columns: 1fr auto; padding-bottom: 20px; }
 #done .bar { grid-template-columns: 1fr; }
 #done .bar h1 { justify-self: start; }
 #stats .bar h1 { font-size: 1.1rem; }

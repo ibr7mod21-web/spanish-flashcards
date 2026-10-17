@@ -2,22 +2,23 @@
   'use strict';
 
   const { grade, CORRECT, WRONG } = window.Grading;
+  const S = window.Scheduler;
+  const FX = window.Feedback;
 
   const PROGRESS_KEY = 'sf.progress.v1';
+  const STUDIED_KEY = 'sf.studied.v1';
+  const SETTINGS_KEY = 'sf.settings.v1';
   const TIP_KEY = 'sf.tipShown';
-  const INTERVALS = [0, 1, 2, 4, 8, 16]; // days, indexed by box
-  const MAX_BOX = INTERVALS.length - 1;
-  const SESSION_MAX = 20;
-  const SESSION_NEW = 8;
-  const DAY = 86400000;
 
   const $ = (id) => document.getElementById(id);
+  const reducedMotion = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
 
   // ---------- storage (all access wrapped in try/catch) ----------
   function readJSON(key, fallback) {
     try {
       const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : fallback;
+      const v = raw ? JSON.parse(raw) : fallback;
+      return v && typeof v === 'object' ? v : fallback;
     } catch (e) {
       return fallback;
     }
@@ -34,23 +35,13 @@
   let deck = null;
   let cardIndex = {}; // id → { card, cat }
   let progress = readJSON(PROGRESS_KEY, {});
-  if (!progress || typeof progress !== 'object') progress = {};
+  let studied = readJSON(STUDIED_KEY, {}); // id → timestamp first flipped in study mode
+  const settings = Object.assign({ sound: true, haptics: true, autoSpeak: true }, readJSON(SETTINGS_KEY, {}));
 
   function saveProgress() { writeJSON(PROGRESS_KEY, progress); }
 
-  // ---------- scheduler ----------
-  function startOfToday() {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d.getTime();
-  }
-
-  function isDue(stats, now) { return stats && stats.due <= now; }
-
   function cardsIn(catId) {
-    return catId
-      ? deck.categories.filter((c) => c.id === catId)
-      : deck.categories;
+    return catId ? deck.categories.filter((c) => c.id === catId) : deck.categories;
   }
 
   function counts(catId) {
@@ -60,56 +51,35 @@
       for (const card of cat.cards) {
         const s = progress[card.id];
         if (!s) fresh++;
-        else if (isDue(s, now)) due++;
+        else if (S.isDue(s, now)) due++;
       }
     }
     return { due, fresh };
   }
 
-  // Due cards (lowest box first) + up to 8 new cards, max 20 total.
-  function buildQueue(catId) {
-    const now = Date.now();
-    const due = [];
-    const fresh = [];
-    for (const cat of cardsIn(catId)) {
-      for (const card of cat.cards) {
-        const s = progress[card.id];
-        if (!s) fresh.push(card.id);
-        else if (isDue(s, now)) due.push(card.id);
-      }
-    }
-    due.sort((a, b) => progress[a].box - progress[b].box || progress[a].due - progress[b].due);
-    const queue = due.slice(0, SESSION_MAX);
-    const room = Math.min(SESSION_NEW, SESSION_MAX - queue.length);
-    return queue.concat(fresh.slice(0, Math.max(0, room)));
+  // ---------- feedback helpers ----------
+  function feedback(kind) {
+    if (settings.sound) FX.play(kind);
+    if (settings.haptics) FX.haptic(kind);
+  }
+  function say(text) { FX.speak(text); }
+
+  // Restart a CSS animation class on an element.
+  function animate(el, cls) {
+    if (reducedMotion.matches) return;
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
   }
 
-  function newStats() {
-    return { box: 0, due: 0, seen: 0, correct: 0, close: 0, wrong: 0, lastWrongAnswers: [], lastSeen: 0, lastWrongAt: 0 };
-  }
-
-  function record(id, result, answer) {
-    const s = Object.assign(newStats(), progress[id] || {});
-    const now = Date.now();
-    s.seen++;
-    s.lastSeen = now;
-    if (result === WRONG) {
-      s.wrong++;
-      s.box = 0;
-      s.due = now;
-      s.lastWrongAt = now;
-      s.lastWrongAnswers = [answer.trim() || '—'].concat(s.lastWrongAnswers || []).slice(0, 3);
-    } else {
-      if (result === CORRECT) s.correct++; else s.close++;
-      s.box = Math.min(MAX_BOX, s.box + 1);
-      s.due = startOfToday() + INTERVALS[s.box] * DAY;
-    }
-    progress[id] = s;
-    saveProgress();
+  function flash(kind) {
+    const el = $('flash');
+    el.className = '';
+    animate(el, 'flash-' + kind);
   }
 
   // ---------- screens ----------
-  const screens = ['home', 'card', 'done', 'stats'];
+  const screens = ['home', 'card', 'study', 'done', 'stats'];
   function show(name) {
     for (const s of screens) $(s).hidden = s !== name;
     window.scrollTo(0, 0);
@@ -122,45 +92,44 @@
     for (const cat of deck.categories) {
       const { due, fresh } = counts(cat.id);
       const li = document.createElement('li');
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'cat';
-      btn.innerHTML =
-        '<span class="cat-name"></span><span class="counts">' +
+      li.className = 'cat';
+      li.innerHTML =
+        '<div class="cat-top"><span class="cat-name"></span><span class="counts">' +
         (due ? `<span class="pill due">${due} due</span>` : '') +
         (fresh ? `<span class="pill">${fresh} new</span>` : '') +
         (!due && !fresh ? '<span class="pill">✓ done</span>' : '') +
-        '</span>';
-      btn.querySelector('.cat-name').textContent = cat.name;
-      btn.addEventListener('click', () => startSession(cat.id));
-      li.appendChild(btn);
+        '</span></div>' +
+        '<div class="cat-actions">' +
+        '<button type="button" class="secondary" data-act="study">Study</button>' +
+        '<button type="button" class="primary" data-act="quiz">Quiz</button>' +
+        '</div>';
+      li.querySelector('.cat-name').textContent = cat.name;
+      li.querySelector('[data-act="study"]').addEventListener('click', () => startStudy(cat.id));
+      const quiz = li.querySelector('[data-act="quiz"]');
+      quiz.disabled = !due && !fresh;
+      quiz.addEventListener('click', () => startSession(cat.id));
       list.appendChild(li);
     }
     const all = counts(null);
     const reviewBtn = $('review-all');
     reviewBtn.textContent = all.due ? `Review all due (${all.due})` : 'Review all due';
     reviewBtn.disabled = all.due === 0;
-    $('deck-note').textContent = all.due ? '' : 'Nothing due right now. Pick a category to learn new words.';
+    $('deck-note').textContent = all.due ? '' : 'Nothing due right now. Study or quiz a category to learn new words.';
     show('home');
   }
 
-  // ---------- session ----------
+  // ---------- quiz session ----------
   let session = null;
 
-  function startSession(catId) {
+  // catId null = "Review all due". practiceIds: quiz these cards without changing progress.
+  function startSession(catId, practiceIds) {
+    const now = Date.now();
     let queue;
-    if (catId === null) {
-      // "Review all due": due cards only, lowest box first.
-      const now = Date.now();
-      queue = Object.keys(cardIndex)
-        .filter((id) => isDue(progress[id], now))
-        .sort((a, b) => progress[a].box - progress[b].box || progress[a].due - progress[b].due)
-        .slice(0, SESSION_MAX);
-    } else {
-      queue = buildQueue(catId);
-    }
+    if (practiceIds) queue = practiceIds.slice(0, S.SESSION_MAX);
+    else if (catId === null) queue = S.reviewAllQueue(deck.categories, progress, now);
+    else queue = S.buildQueue(cardsIn(catId), progress, studied, now);
     if (!queue.length) { renderHome(); return; }
-    session = { queue, pos: 0, total: queue.length, tally: { correct: 0, close: 0, wrong: 0 }, answered: false };
+    session = { queue, pos: 0, practice: !!practiceIds, tally: { correct: 0, close: 0, wrong: 0 }, answered: false };
     show('card');
     maybeShowTip();
     showCard();
@@ -168,12 +137,17 @@
 
   function current() { return cardIndex[session.queue[session.pos]]; }
 
+  function updateProgress() {
+    const done = session.pos + (session.answered ? 1 : 0);
+    $('progress').textContent = `${Math.min(session.pos + 1, session.queue.length)} / ${session.queue.length}`;
+    $('progress-fill').style.width = `${(done / session.queue.length) * 100}%`;
+  }
+
   function showCard() {
     const { card, cat } = current();
     session.answered = false;
     $('word').textContent = card.en;
-    $('card-cat').textContent = cat.name;
-    $('progress').textContent = `${Math.min(session.pos + 1, session.queue.length)} / ${session.queue.length}`;
+    $('card-cat').textContent = session.practice ? `${cat.name} · practice` : cat.name;
     const input = $('answer');
     input.value = '';
     input.readOnly = false;
@@ -181,6 +155,8 @@
     $('action').textContent = 'Check';
     $('reveal').hidden = false;
     $('feedback').hidden = true;
+    updateProgress();
+    animate($('prompt'), 'slide-in');
     input.focus();
   }
 
@@ -193,19 +169,25 @@
     if (!reveal && !answer.trim()) { input.focus(); return; }
 
     const r = grade(answer, card, cat.id);
-    record(card.id, r.result, answer);
+    // Feedback first, while we are still inside the tap/keypress (iOS needs the user gesture).
+    feedback(r.result);
+    if (settings.autoSpeak) say(card.es);
+
+    if (!session.practice) {
+      progress[card.id] = S.applyResult(progress[card.id], r.result, answer, Date.now());
+      saveProgress();
+    }
     session.tally[r.result]++;
     session.answered = true;
 
     if (r.result === WRONG) {
-      // Requeue 3–5 cards later in this session.
-      const offset = 3 + Math.floor(Math.random() * 3);
-      const at = Math.min(session.pos + 1 + offset, session.queue.length);
-      session.queue.splice(at, 0, card.id);
+      session.queue.splice(S.requeueIndex(session.pos, session.queue.length), 0, card.id);
     }
 
     input.readOnly = true;
     input.className = r.result;
+    if (r.result === WRONG && !reveal) animate(input, 'shake');
+    flash(r.result);
     const fb = $('feedback');
     fb.className = 'feedback ' + r.result;
     $('verdict').textContent = reveal ? 'Answer' : VERDICT[r.result];
@@ -214,9 +196,10 @@
     $('yours').textContent = showYours ? `You wrote: ${answer.trim()}` : '';
     $('hint').textContent = card.ar || '';
     fb.hidden = false;
+    animate(fb, 'pop-in');
     $('action').textContent = 'Next';
     $('reveal').hidden = true;
-    $('progress').textContent = `${session.pos + 1} / ${session.queue.length}`;
+    updateProgress();
     input.focus(); // keep the keyboard up so Enter → Next
   }
 
@@ -233,8 +216,106 @@
       `<div class="g"><b>${t.correct}</b>correct</div>` +
       `<div class="a"><b>${t.close}</b>close</div>` +
       `<div class="r"><b>${t.wrong}</b>missed</div>`;
+    $('done-note').textContent = session.practice ? 'Practice round: your schedule was not changed.' : '';
     session = null;
     show('done');
+    animate($('summary'), 'pop-in');
+    feedback('fanfare');
+  }
+
+  // ---------- study mode ----------
+  let study = null;
+
+  function startStudy(catId) {
+    const cat = cardsIn(catId)[0];
+    study = { catId, order: cat.cards.map((c) => c.id), pos: 0, flipped: false, shuffled: false };
+    $('shuffle').setAttribute('aria-pressed', 'false');
+    $('study-cat').textContent = cat.name;
+    show('study');
+    showStudyCard(0);
+  }
+
+  function showStudyCard(dir) {
+    const { card } = cardIndex[study.order[study.pos]];
+    study.flipped = false;
+    $('study-deck').hidden = false;
+    $('study-end').hidden = true;
+    $('flip').classList.remove('flipped');
+    $('study-en').textContent = card.en;
+    $('study-es').textContent = card.es;
+    $('study-ar').textContent = card.ar || '';
+    $('study-progress').textContent = `${study.pos + 1} / ${study.order.length}`;
+    $('study-fill').style.width = `${((study.pos + 1) / study.order.length) * 100}%`;
+    $('study-prev').disabled = study.pos === 0;
+    $('study-next').textContent = study.pos === study.order.length - 1 ? 'Finish ›' : 'Next ›';
+    if (dir) animate($('flip'), dir > 0 ? 'slide-in' : 'slide-in-back');
+  }
+
+  function flipStudy() {
+    const id = study.order[study.pos];
+    study.flipped = !study.flipped;
+    $('flip').classList.toggle('flipped', study.flipped);
+    if (study.flipped) {
+      if (!studied[id]) { studied[id] = Date.now(); writeJSON(STUDIED_KEY, studied); }
+      if (settings.autoSpeak) say(cardIndex[id].card.es);
+    }
+  }
+
+  function studyStep(dir) {
+    if (!study) return;
+    const nextPos = study.pos + dir;
+    if (nextPos < 0) return;
+    if (nextPos >= study.order.length) { endStudy(); return; }
+    study.pos = nextPos;
+    showStudyCard(dir);
+  }
+
+  function endStudy() {
+    const n = study.order.length;
+    $('study-deck').hidden = true;
+    $('study-end').hidden = false;
+    $('study-progress').textContent = `${n} / ${n}`;
+    $('study-end-text').textContent = `You went through ${n} card${n === 1 ? '' : 's'} in ${cardIndex[study.order[0]].cat.name}.`;
+    animate($('study-end'), 'pop-in');
+  }
+
+  function quizFromStudy() {
+    const { catId, order } = study;
+    const queue = S.buildQueue(cardsIn(catId), progress, studied, Date.now());
+    study = null;
+    // Nothing due or new in this category: run a practice round on the studied cards instead.
+    if (queue.length) startSession(catId);
+    else startSession(catId, S.shuffle(order));
+  }
+
+  function toggleShuffle() {
+    const cat = cardsIn(study.catId)[0];
+    study.shuffled = !study.shuffled;
+    study.order = study.shuffled ? S.shuffle(cat.cards.map((c) => c.id)) : cat.cards.map((c) => c.id);
+    study.pos = 0;
+    $('shuffle').setAttribute('aria-pressed', String(study.shuffled));
+    showStudyCard(1);
+  }
+
+  // Tap flips; horizontal swipe goes next (left) / back (right).
+  function wireSwipe() {
+    const el = $('flip');
+    let x0 = null, y0 = null, swiped = false;
+    el.addEventListener('pointerdown', (e) => { x0 = e.clientX; y0 = e.clientY; swiped = false; });
+    el.addEventListener('pointerup', (e) => {
+      if (x0 === null) return;
+      const dx = e.clientX - x0, dy = e.clientY - y0;
+      x0 = null;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        swiped = true;
+        studyStep(dx < 0 ? 1 : -1);
+      }
+    });
+    el.addEventListener('pointercancel', () => { x0 = null; });
+    el.addEventListener('click', () => {
+      if (swiped) { swiped = false; return; }
+      if (study) flipStudy();
+    });
   }
 
   // ---------- one-time voice tip ----------
@@ -244,13 +325,17 @@
 
   // ---------- stats ----------
   function renderStats() {
+    $('set-sound').checked = settings.sound;
+    $('set-haptics').checked = settings.haptics;
+    $('set-speak').checked = settings.autoSpeak;
+
     const ids = Object.keys(cardIndex);
     const perBox = [0, 0, 0, 0, 0, 0];
     let unseen = 0, c = 0, cl = 0, w = 0;
     for (const id of ids) {
       const s = progress[id];
       if (!s) { unseen++; continue; }
-      perBox[Math.min(MAX_BOX, s.box || 0)]++;
+      perBox[Math.min(S.MAX_BOX, s.box || 0)]++;
       c += s.correct || 0; cl += s.close || 0; w += s.wrong || 0;
     }
     const total = c + cl + w;
@@ -258,11 +343,11 @@
       ? `${Math.round(((c + cl) / total) * 100)}% <small>${c + cl} of ${total} answers (${cl} close)</small>`
       : '— <small>no answers yet</small>';
 
-    const cols = [['New', unseen]].concat(perBox.map((n, i) => [`Box ${i}`, n]));
+    const cols = [['New', unseen]].concat(perBox.map((n, i) => [String(i), n]));
     const max = Math.max(1, ...cols.map((x) => x[1]));
     $('boxes').innerHTML = cols
       .map(([label, n]) =>
-        `<div class="box"><span class="n">${n}</span><div class="bar-fill" style="height:${(n / max) * 80}%"></div><span class="lbl">${label.replace('Box ', '')}</span></div>`)
+        `<div class="box"><span class="n">${n}</span><div class="bar-fill" style="height:${(n / max) * 80}%"></div><span class="lbl">${label}</span></div>`)
       .join('');
 
     const weak = ids
@@ -295,9 +380,22 @@
     show('stats');
   }
 
+  function wireSettings() {
+    const map = { 'set-sound': 'sound', 'set-haptics': 'haptics', 'set-speak': 'autoSpeak' };
+    for (const [id, key] of Object.entries(map)) {
+      $(id).addEventListener('change', (e) => {
+        settings[key] = e.target.checked;
+        writeJSON(SETTINGS_KEY, settings);
+        // Preview what was just switched on.
+        if (settings[key] && key === 'sound') FX.play('correct');
+        if (settings[key] && key === 'autoSpeak') say('hola');
+      });
+    }
+  }
+
   // ---------- export / import ----------
   async function doExport() {
-    const text = JSON.stringify({ exportedAt: new Date().toISOString(), deckVersion: deck.version, cards: progress }, null, 1);
+    const text = JSON.stringify({ exportedAt: new Date().toISOString(), deckVersion: deck.version, cards: progress, studied }, null, 1);
     const box = $('export-text');
     box.value = text;
     $('export-box').hidden = false;
@@ -344,8 +442,12 @@
     let n = 0;
     for (const [id, s] of Object.entries(data.cards)) {
       if (!s || typeof s !== 'object' || typeof s.box !== 'number') continue;
-      progress[id] = Object.assign(newStats(), s);
+      progress[id] = Object.assign(S.newStats(), s);
       n++;
+    }
+    if (data.studied && typeof data.studied === 'object') {
+      for (const [id, t] of Object.entries(data.studied)) if (typeof t === 'number') studied[id] = t;
+      writeJSON(STUDIED_KEY, studied);
     }
     if (!writeJSON(PROGRESS_KEY, progress)) {
       msg.textContent = 'Could not save to this device’s storage.';
@@ -359,6 +461,15 @@
 
   // ---------- wiring ----------
   function wire() {
+    // iOS: audio can only start inside a user gesture, so unlock it on the first tap or key.
+    const unlock = () => {
+      FX.unlockAudio();
+      document.removeEventListener('pointerdown', unlock, true);
+      document.removeEventListener('keydown', unlock, true);
+    };
+    document.addEventListener('pointerdown', unlock, true);
+    document.addEventListener('keydown', unlock, true);
+
     $('review-all').addEventListener('click', () => startSession(null));
     $('to-stats').addEventListener('click', renderStats);
     $('stats-back').addEventListener('click', renderHome);
@@ -371,6 +482,10 @@
       if (session.answered) next(); else check(false);
     });
     $('reveal').addEventListener('click', () => { if (session && !session.answered) check(true); });
+    $('speak').addEventListener('click', () => {
+      if (session) say(current().card.es);
+      $('answer').focus();
+    });
 
     $('tip-close').addEventListener('click', () => {
       writeJSON(TIP_KEY, true);
@@ -378,6 +493,23 @@
       $('answer').focus();
     });
 
+    // Study
+    wireSwipe();
+    $('study-back').addEventListener('click', () => { study = null; renderHome(); });
+    $('study-prev').addEventListener('click', () => studyStep(-1));
+    $('study-next').addEventListener('click', () => studyStep(1));
+    $('study-speak').addEventListener('click', () => { if (study) say(cardIndex[study.order[study.pos]].card.es); });
+    $('shuffle').addEventListener('click', () => { if (study) toggleShuffle(); });
+    $('study-quiz').addEventListener('click', quizFromStudy);
+    $('study-again').addEventListener('click', () => { study.pos = 0; showStudyCard(1); });
+    document.addEventListener('keydown', (e) => {
+      if ($('study').hidden || !study || !$('study-end').hidden) return;
+      if (e.key === 'ArrowRight') studyStep(1);
+      else if (e.key === 'ArrowLeft') studyStep(-1);
+    });
+
+    // Stats
+    wireSettings();
     $('export').addEventListener('click', doExport);
     $('export-text').addEventListener('focus', (e) => e.target.select());
     $('import-open').addEventListener('click', () => {

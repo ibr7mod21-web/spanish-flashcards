@@ -18,6 +18,8 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div id="flash" aria-hidden="true"></div>
+
   <!-- HOME -->
   <main id="home" class="screen" hidden>
     <header class="bar">
@@ -29,19 +31,21 @@
     <p class="muted small" id="deck-note"></p>
   </main>
 
-  <!-- CARD -->
+  <!-- QUIZ CARD -->
   <main id="card" class="screen" hidden>
     <header class="bar">
       <button class="link" id="card-back" type="button">‹ Home</button>
       <span class="muted" id="progress"></span>
+      <span></span>
     </header>
+    <div class="progressbar" aria-hidden="true"><div id="progress-fill"></div></div>
 
     <div class="tip" id="voice-tip" hidden>
       <p>Add a Spanish keyboard and tap its mic to answer by voice.</p>
       <button class="link" id="tip-close" type="button">Got it</button>
     </div>
 
-    <section class="prompt">
+    <section class="prompt" id="prompt">
       <p class="cat-label muted small" id="card-cat"></p>
       <h2 class="word" id="word"></h2>
     </section>
@@ -55,16 +59,59 @@
 
     <section class="feedback" id="feedback" hidden>
       <p class="verdict" id="verdict"></p>
-      <p class="expected" id="expected" lang="es"></p>
+      <p class="expected-row">
+        <span class="expected" id="expected" lang="es"></span>
+        <button class="speak" id="speak" type="button" aria-label="Say it">🔊</button>
+      </p>
       <p class="yours muted small" id="yours"></p>
       <p class="hint" id="hint" lang="ar" dir="rtl"></p>
     </section>
+  </main>
+
+  <!-- STUDY -->
+  <main id="study" class="screen" hidden>
+    <header class="bar">
+      <button class="link" id="study-back" type="button">‹ Home</button>
+      <span class="muted" id="study-progress"></span>
+      <button class="link" id="shuffle" type="button" aria-pressed="false">Shuffle</button>
+    </header>
+    <div class="progressbar" aria-hidden="true"><div id="study-fill"></div></div>
+
+    <div id="study-deck">
+      <p class="cat-label muted small center-text" id="study-cat"></p>
+      <button class="flip" id="flip" type="button" aria-label="Flip card">
+        <span class="flip-inner">
+          <span class="face front">
+            <span class="face-word" id="study-en"></span>
+            <span class="face-hint muted small">Tap to flip</span>
+          </span>
+          <span class="face back">
+            <span class="face-word" id="study-es" lang="es"></span>
+            <span class="face-ar" id="study-ar" lang="ar" dir="rtl"></span>
+          </span>
+        </span>
+      </button>
+      <div class="row study-nav">
+        <button class="secondary" id="study-prev" type="button">‹ Back</button>
+        <button class="secondary icon" id="study-speak" type="button" aria-label="Say it">🔊</button>
+        <button class="primary" id="study-next" type="button">Next ›</button>
+      </div>
+      <p class="muted small center-text">Swipe left for next, right for back.</p>
+    </div>
+
+    <div id="study-end" class="study-end" hidden>
+      <h2 id="study-end-title">All done</h2>
+      <p class="muted" id="study-end-text"></p>
+      <button class="primary big" id="study-quiz" type="button">Quiz me on these</button>
+      <button class="secondary big" id="study-again" type="button">Study again</button>
+    </div>
   </main>
 
   <!-- SESSION DONE -->
   <main id="done" class="screen" hidden>
     <header class="bar"><h1>Done</h1></header>
     <div class="summary" id="summary"></div>
+    <p class="muted small center-text" id="done-note"></p>
     <button class="primary big" id="done-home" type="button">Home</button>
   </main>
 
@@ -75,6 +122,13 @@
       <h1>Stats</h1>
       <span></span>
     </header>
+
+    <section class="panel">
+      <h3>Settings</h3>
+      <label class="toggle"><span>Sound effects</span><input type="checkbox" switch id="set-sound"></label>
+      <label class="toggle"><span>Haptics <small class="muted">(experimental, iOS 18+)</small></span><input type="checkbox" switch id="set-haptics"></label>
+      <label class="toggle"><span>Auto-speak Spanish</span><input type="checkbox" switch id="set-speak"></label>
+    </section>
 
     <section class="panel">
       <h3>Accuracy</h3>
@@ -112,6 +166,8 @@
   </main>
 
   <script src="grading.js"></script>
+  <script src="scheduler.js"></script>
+  <script src="feedback.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

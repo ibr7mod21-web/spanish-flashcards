@@ -130,6 +130,95 @@ test('shuffle: same items, new array, input untouched', () => {
   assert.notDeepEqual(b, a);
 });
 
+test('applyResult keeps the last 3 results, newest first', () => {
+  let s;
+  for (const r of ['correct', 'wrong', 'close', 'correct']) s = S.applyResult(s, r, 'x', NOW);
+  assert.deepEqual(s.recent, ['correct', 'close', 'wrong']);
+});
+
+test('applyResult: lastMissAt set by CLOSE and WRONG, not CORRECT', () => {
+  let s = S.applyResult(undefined, 'close', 'x', NOW - 5000);
+  assert.equal(s.lastMissAt, NOW - 5000);
+  s = S.applyResult(s, 'correct', 'x', NOW);
+  assert.equal(s.lastMissAt, NOW - 5000);
+  s = S.applyResult(s, 'wrong', 'x', NOW + 1);
+  assert.equal(s.lastMissAt, NOW + 1);
+});
+
+console.log('weak words');
+
+const st = (o) => Object.assign(S.newStats(), { seen: 1 }, o);
+
+test('isWeak: wrong > 0 and box <= 1', () => {
+  assert.equal(S.isWeak(st({ wrong: 1, box: 0 })), true);
+  assert.equal(S.isWeak(st({ wrong: 2, box: 1 })), true);
+  assert.equal(S.isWeak(st({ wrong: 1, box: 2 })), false);
+});
+
+test('isWeak: CLOSE or WRONG in the last 3 attempts', () => {
+  assert.equal(S.isWeak(st({ box: 4, recent: ['correct', 'correct', 'close'] })), true);
+  assert.equal(S.isWeak(st({ box: 3, wrong: 1, recent: ['correct', 'wrong'] })), true);
+  assert.equal(S.isWeak(st({ box: 4, wrong: 3, recent: ['correct', 'correct', 'correct'] })), false);
+});
+
+test('isWeak: never seen or never missed → not weak', () => {
+  assert.equal(S.isWeak(undefined), false);
+  assert.equal(S.isWeak(st({ box: 1, correct: 1, recent: ['correct'] })), false);
+});
+
+test('isWeak works on old stats without `recent`', () => {
+  const old = { box: 0, due: 0, seen: 2, correct: 1, close: 0, wrong: 1, lastWrongAnswers: ['x'], lastSeen: 1, lastWrongAt: 1 };
+  assert.equal(S.isWeak(old), true);
+});
+
+test('weakQueue: most recent miss first, ignores due dates', () => {
+  const p = {
+    'a-0': st({ wrong: 1, box: 0, lastMissAt: 100, due: NOW + 9 * DAY }),
+    'a-1': st({ box: 4, recent: ['close'], lastMissAt: 300, due: NOW + 9 * DAY }),
+    'a-2': st({ box: 3, recent: ['correct'], correct: 1 }),        // not weak
+    'b-0': st({ wrong: 1, box: 1, lastWrongAt: 200 }),             // old stats: falls back to lastWrongAt
+  };
+  assert.deepEqual(S.weakQueue([cat('a', 3), cat('b', 1)], p), ['a-1', 'b-0', 'a-0']);
+});
+
+test('weakQueue: max 20', () => {
+  const p = {};
+  for (let i = 0; i < 25; i++) p[`a-${i}`] = st({ wrong: 1, box: 0, lastMissAt: i });
+  const q = S.weakQueue([cat('a', 25)], p);
+  assert.equal(q.length, 20);
+  assert.equal(q[0], 'a-24');
+});
+
+test('weakQueue: none → empty', () => {
+  assert.deepEqual(S.weakQueue([cat('a', 3)], {}), []);
+});
+
+console.log('custom quiz');
+
+test('customQueue: count from the selected categories only, no duplicates', () => {
+  const q = S.customQueue([cat('a', 15), cat('b', 15)], 20);
+  assert.equal(q.length, 20);
+  assert.equal(new Set(q).size, 20);
+  assert.ok(q.every((id) => /^[ab]-/.test(id)));
+});
+
+test('customQueue: includes cards that are not due', () => {
+  // customQueue never looks at progress, so future-due cards are always eligible.
+  const q = S.customQueue([cat('a', 3)], 'all');
+  assert.deepEqual(q.slice().sort(), ['a-0', 'a-1', 'a-2']);
+});
+
+test('customQueue: count larger than available → all of them', () => {
+  assert.equal(S.customQueue([cat('a', 7)], 30).length, 7);
+});
+
+test('customQueue: mixes categories (seeded)', () => {
+  let seed = 7;
+  const rng = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  const q = S.customQueue([cat('a', 10), cat('b', 10)], 10, rng);
+  assert.ok(q.some((id) => id.startsWith('a-')) && q.some((id) => id.startsWith('b-')));
+});
+
 console.log('feedback.js pickVoice');
 
 const v = (name, lang, localService = true) => ({ name, lang, localService });

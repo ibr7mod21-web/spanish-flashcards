@@ -30,8 +30,51 @@
       <button class="link" id="to-stats" type="button">Stats</button>
     </header>
     <button class="primary big" id="review-all" type="button">Review all due</button>
+    <div class="modes">
+      <button class="mode" id="to-custom" type="button">
+        <span class="mode-title">Custom quiz</span>
+        <span class="mode-sub muted small">Pick categories</span>
+      </button>
+      <button class="mode" id="weak" type="button">
+        <span class="mode-title">Weak words <span class="pill weak-pill" id="weak-count">0</span></span>
+        <span class="mode-sub muted small" id="weak-sub">Recent misses</span>
+      </button>
+    </div>
     <ul class="cats" id="cat-list"></ul>
     <p class="muted small" id="deck-note"></p>
+  </main>
+
+  <!-- CUSTOM QUIZ -->
+  <main id="custom" class="screen" hidden>
+    <header class="bar">
+      <button class="link" id="custom-back" type="button">‹ Home</button>
+      <h1>Custom quiz</h1>
+      <span></span>
+    </header>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h3>Categories</h3>
+        <div class="panel-actions">
+          <button class="link small" id="custom-all" type="button">Select all</button>
+          <button class="link small" id="custom-none" type="button">Clear</button>
+        </div>
+      </div>
+      <ul class="checklist" id="custom-cats"></ul>
+    </section>
+
+    <section class="panel">
+      <h3>Number of cards</h3>
+      <div class="segmented" role="radiogroup" aria-label="Number of cards" id="custom-count">
+        <label><input type="radio" name="custom-count" value="10"><span>10</span></label>
+        <label><input type="radio" name="custom-count" value="20"><span>20</span></label>
+        <label><input type="radio" name="custom-count" value="30"><span>30</span></label>
+        <label><input type="radio" name="custom-count" value="all"><span>All</span></label>
+      </div>
+    </section>
+
+    <button class="primary big" id="custom-start" type="button">Start</button>
+    <p class="muted small center-text">A random mix, including cards that aren’t due yet. Your answers update your schedule as usual.</p>
   </main>
 
   <!-- QUIZ CARD -->

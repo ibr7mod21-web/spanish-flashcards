@@ -8,6 +8,7 @@
   const PROGRESS_KEY = 'sf.progress.v1';
   const STUDIED_KEY = 'sf.studied.v1';
   const SETTINGS_KEY = 'sf.settings.v1';
+  const CUSTOM_KEY = 'sf.custom.v1';
   const TIP_KEY = 'sf.tipShown';
 
   const $ = (id) => document.getElementById(id);
@@ -81,7 +82,7 @@
   }
 
   // ---------- screens ----------
-  const screens = ['home', 'card', 'study', 'done', 'stats'];
+  const screens = ['home', 'card', 'study', 'done', 'stats', 'custom'];
   function show(name) {
     for (const s of screens) $(s).hidden = s !== name;
     window.scrollTo(0, 0);
@@ -117,6 +118,12 @@
     reviewBtn.textContent = all.due ? `Review all due (${all.due})` : 'Review all due';
     reviewBtn.disabled = all.due === 0;
     $('deck-note').textContent = all.due ? '' : 'Nothing due right now. Study or quiz a category to learn new words.';
+
+    const weak = S.weakQueue(deck.categories, progress, Infinity).length;
+    $('weak').disabled = weak === 0;
+    $('weak-count').textContent = String(weak);
+    $('weak-count').hidden = weak === 0;
+    $('weak-sub').textContent = weak ? (weak > S.WEAK_MAX ? `Top ${S.WEAK_MAX} recent misses` : 'Recent misses first') : 'No weak words yet';
     show('home');
   }
 
@@ -130,11 +137,67 @@
     if (practiceIds) queue = practiceIds.slice(0, S.SESSION_MAX);
     else if (catId === null) queue = S.reviewAllQueue(deck.categories, progress, now);
     else queue = S.buildQueue(cardsIn(catId), progress, studied, now);
+    startQueue(queue, { practice: !!practiceIds });
+  }
+
+  // Run a quiz over these card ids. practice: don't change progress.
+  function startQueue(queue, { practice = false } = {}) {
     if (!queue.length) { renderHome(); return; }
-    session = { queue, pos: 0, practice: !!practiceIds, tally: { correct: 0, close: 0, wrong: 0 }, answered: false };
+    session = { queue, pos: 0, practice, tally: { correct: 0, close: 0, wrong: 0 }, answered: false };
     show('card');
     maybeShowTip();
     showCard();
+  }
+
+  // ---------- custom quiz ----------
+  const custom = Object.assign({ cats: null, count: 20 }, readJSON(CUSTOM_KEY, {}));
+
+  function renderCustom() {
+    const valid = new Set(deck.categories.map((c) => c.id));
+    // First visit: everything selected. Later: last selection (minus categories that no longer exist).
+    const selected = new Set((custom.cats || [...valid]).filter((id) => valid.has(id)));
+    const ul = $('custom-cats');
+    ul.innerHTML = '';
+    for (const cat of deck.categories) {
+      const li = document.createElement('li');
+      li.innerHTML = '<label class="check"><input type="checkbox"><span class="check-name"></span><span class="muted small"></span></label>';
+      const box = li.querySelector('input');
+      box.value = cat.id;
+      box.checked = selected.has(cat.id);
+      box.addEventListener('change', saveCustom);
+      li.querySelector('.check-name').textContent = cat.name;
+      li.querySelector('.muted').textContent = `${cat.cards.length} cards`;
+      ul.appendChild(li);
+    }
+    for (const r of document.querySelectorAll('input[name="custom-count"]')) r.checked = r.value === String(custom.count);
+    updateCustomStart();
+    show('custom');
+  }
+
+  function customSelection() {
+    return [...document.querySelectorAll('#custom-cats input:checked')].map((b) => b.value);
+  }
+
+  function saveCustom() {
+    custom.cats = customSelection();
+    const r = document.querySelector('input[name="custom-count"]:checked');
+    custom.count = !r || r.value === 'all' ? 'all' : Number(r.value);
+    writeJSON(CUSTOM_KEY, custom);
+    updateCustomStart();
+  }
+
+  function updateCustomStart() {
+    const ids = customSelection();
+    const available = deck.categories.filter((c) => ids.includes(c.id)).reduce((n, c) => n + c.cards.length, 0);
+    const n = custom.count === 'all' ? available : Math.min(custom.count, available);
+    const btn = $('custom-start');
+    btn.disabled = n === 0;
+    btn.textContent = n ? `Start · ${n} card${n === 1 ? '' : 's'}` : 'Pick at least one category';
+  }
+
+  function startCustom() {
+    const ids = customSelection();
+    startQueue(S.customQueue(deck.categories.filter((c) => ids.includes(c.id)), custom.count));
   }
 
   function current() { return cardIndex[session.queue[session.pos]]; }
@@ -473,6 +536,19 @@
     document.addEventListener('keydown', unlock, true);
 
     $('review-all').addEventListener('click', () => startSession(null));
+    $('weak').addEventListener('click', () => startQueue(S.weakQueue(deck.categories, progress)));
+    $('to-custom').addEventListener('click', renderCustom);
+    $('custom-back').addEventListener('click', renderHome);
+    $('custom-all').addEventListener('click', () => {
+      for (const b of document.querySelectorAll('#custom-cats input')) b.checked = true;
+      saveCustom();
+    });
+    $('custom-none').addEventListener('click', () => {
+      for (const b of document.querySelectorAll('#custom-cats input')) b.checked = false;
+      saveCustom();
+    });
+    for (const r of document.querySelectorAll('input[name="custom-count"]')) r.addEventListener('change', saveCustom);
+    $('custom-start').addEventListener('click', startCustom);
     $('to-stats').addEventListener('click', renderStats);
     $('stats-back').addEventListener('click', renderHome);
     $('card-back').addEventListener('click', () => { $('answer').blur(); session = null; renderHome(); });

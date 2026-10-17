@@ -6,6 +6,8 @@
   const MAX_BOX = INTERVALS.length - 1;
   const SESSION_MAX = 20;
   const SESSION_NEW = 8;
+  const WEAK_MAX = 20;
+  const RECENT = 3; // attempts kept in stats.recent
   const DAY = 86400000;
 
   function startOfDay(now) {
@@ -49,15 +51,22 @@
   }
 
   function newStats() {
-    return { box: 0, due: 0, seen: 0, correct: 0, close: 0, wrong: 0, lastWrongAnswers: [], lastSeen: 0, lastWrongAt: 0 };
+    return {
+      box: 0, due: 0, seen: 0, correct: 0, close: 0, wrong: 0,
+      lastWrongAnswers: [], lastSeen: 0, lastWrongAt: 0,
+      recent: [],     // last 3 results, newest first: 'correct' | 'close' | 'wrong'
+      lastMissAt: 0,  // time of the last CLOSE or WRONG
+    };
   }
 
   // Returns updated stats for one answer. result: 'correct' | 'close' | 'wrong'.
   function applyResult(prev, result, answer, now) {
     const s = Object.assign(newStats(), prev || {});
     s.lastWrongAnswers = (s.lastWrongAnswers || []).slice();
+    s.recent = [result].concat(s.recent || []).slice(0, RECENT);
     s.seen++;
     s.lastSeen = now;
+    if (result !== 'correct') s.lastMissAt = now;
     if (result === 'wrong') {
       s.wrong++;
       s.box = 0;
@@ -70,6 +79,32 @@
       s.due = startOfDay(now) + INTERVALS[s.box] * DAY;
     }
     return s;
+  }
+
+  // Weak: missed and still in box 0–1, or a CLOSE/WRONG among the last 3 attempts.
+  function isWeak(stats) {
+    if (!stats) return false;
+    if ((stats.wrong || 0) > 0 && (stats.box || 0) <= 1) return true;
+    return (stats.recent || []).some((r) => r === 'close' || r === 'wrong');
+  }
+
+  function lastMiss(stats) { return stats.lastMissAt || stats.lastWrongAt || 0; }
+
+  // Weak cards in the given categories, most recent miss first, max 20. Ignores due dates.
+  function weakQueue(categories, progress, limit) {
+    const ids = [];
+    for (const cat of categories) {
+      for (const card of cat.cards) if (isWeak(progress[card.id])) ids.push(card.id);
+    }
+    ids.sort((a, b) => lastMiss(progress[b]) - lastMiss(progress[a]));
+    return ids.slice(0, limit || WEAK_MAX);
+  }
+
+  // Custom quiz: a random mix of every card in the given categories, due or not.
+  // count: a number, or 'all'.
+  function customQueue(categories, count, rng) {
+    const ids = shuffle(categories.flatMap((cat) => cat.cards.map((c) => c.id)), rng);
+    return count === 'all' ? ids : ids.slice(0, count);
   }
 
   // Where to re-insert a missed card: 3–5 cards later, clamped to the end of the queue.
@@ -90,8 +125,9 @@
   }
 
   const api = {
-    INTERVALS, MAX_BOX, SESSION_MAX, SESSION_NEW, DAY,
+    INTERVALS, MAX_BOX, SESSION_MAX, SESSION_NEW, WEAK_MAX, DAY,
     startOfDay, isDue, buildQueue, reviewAllQueue, newStats, applyResult, requeueIndex, shuffle,
+    isWeak, weakQueue, customQueue,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Scheduler = api;

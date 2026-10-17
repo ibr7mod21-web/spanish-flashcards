@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "dialect": "general",
   "categories": [
     {
@@ -58,6 +58,97 @@
         { "id": "mon-10", "en": "October", "es": "octubre", "ar": "أكتوبر" },
         { "id": "mon-11", "en": "November", "es": "noviembre", "ar": "نوفمبر" },
         { "id": "mon-12", "en": "December", "es": "diciembre", "ar": "ديسمبر" }
+      ]
+    },
+    {
+      "id": "colors",
+      "name": "Colors",
+      "cards": [
+        { "id": "col-01", "en": "red", "es": "rojo", "ar": "أحمر" },
+        { "id": "col-02", "en": "blue", "es": "azul", "ar": "أزرق" },
+        { "id": "col-03", "en": "green", "es": "verde", "ar": "أخضر" },
+        { "id": "col-04", "en": "yellow", "es": "amarillo", "ar": "أصفر" },
+        { "id": "col-05", "en": "black", "es": "negro", "ar": "أسود" },
+        { "id": "col-06", "en": "white", "es": "blanco", "ar": "أبيض" },
+        { "id": "col-07", "en": "gray", "es": "gris", "ar": "رمادي" },
+        { "id": "col-08", "en": "orange (color)", "es": "naranja", "alt": ["anaranjado"], "ar": "برتقالي" },
+        { "id": "col-09", "en": "pink", "es": "rosa", "alt": ["rosado"], "ar": "وردي" },
+        { "id": "col-10", "en": "purple", "es": "morado", "ar": "بنفسجي" },
+        { "id": "col-11", "en": "brown", "es": "marrón", "alt": ["café"], "ar": "بني" }
+      ]
+    },
+    {
+      "id": "family",
+      "name": "Family",
+      "cards": [
+        { "id": "fam-01", "en": "mother", "es": "madre", "alt": ["mamá"], "ar": "أم" },
+        { "id": "fam-02", "en": "father", "es": "padre", "alt": ["papá"], "ar": "أب" },
+        { "id": "fam-03", "en": "brother", "es": "hermano", "ar": "أخ" },
+        { "id": "fam-04", "en": "sister", "es": "hermana", "ar": "أخت" },
+        { "id": "fam-05", "en": "son", "es": "hijo", "ar": "ابن" },
+        { "id": "fam-06", "en": "daughter", "es": "hija", "ar": "ابنة" },
+        { "id": "fam-07", "en": "grandfather", "es": "abuelo", "ar": "جد" },
+        { "id": "fam-08", "en": "grandmother", "es": "abuela", "ar": "جدة" },
+        { "id": "fam-09", "en": "uncle", "es": "tío", "ar": "عم / خال" },
+        { "id": "fam-10", "en": "aunt", "es": "tía", "ar": "عمة / خالة" },
+        { "id": "fam-11", "en": "cousin (male)", "es": "primo", "ar": "ابن العم / ابن الخال" },
+        { "id": "fam-12", "en": "cousin (female)", "es": "prima", "ar": "بنت العم / بنت الخال" },
+        { "id": "fam-13", "en": "husband", "es": "esposo", "ar": "زوج" },
+        { "id": "fam-14", "en": "wife", "es": "esposa", "ar": "زوجة" }
+      ]
+    },
+    {
+      "id": "food",
+      "name": "Food & drinks",
+      "cards": [
+        { "id": "food-01", "en": "water", "es": "agua", "ar": "ماء" },
+        { "id": "food-02", "en": "bread", "es": "pan", "ar": "خبز" },
+        { "id": "food-03", "en": "milk", "es": "leche", "ar": "حليب" },
+        { "id": "food-04", "en": "coffee", "es": "café", "ar": "قهوة" },
+        { "id": "food-05", "en": "tea", "es": "té", "ar": "شاي" },
+        { "id": "food-06", "en": "juice", "es": "jugo", "ar": "عصير" },
+        { "id": "food-07", "en": "meat", "es": "carne", "ar": "لحم" },
+        { "id": "food-08", "en": "chicken", "es": "pollo", "ar": "دجاج" },
+        { "id": "food-09", "en": "fish (food)", "es": "pescado", "ar": "سمك" },
+        { "id": "food-10", "en": "rice", "es": "arroz", "ar": "الرز" },
+        { "id": "food-11", "en": "egg", "es": "huevo", "ar": "بيضة" },
+        { "id": "food-12", "en": "cheese", "es": "queso", "ar": "جبن" },
+        { "id": "food-13", "en": "apple", "es": "manzana", "ar": "تفاحة" },
+        { "id": "food-14", "en": "orange (fruit)", "es": "naranja", "ar": "برتقالة" },
+        { "id": "food-15", "en": "sugar", "es": "azúcar", "ar": "السكر" },
+        { "id": "food-16", "en": "salt", "es": "sal", "ar": "ملح" },
+        { "id": "food-17", "en": "oil", "es": "aceite", "ar": "الزيت" },
+        { "id": "food-18", "en": "fruit", "es": "fruta", "ar": "فاكهة" },
+        { "id": "food-19", "en": "vegetable", "es": "verdura", "ar": "خضار" },
+        { "id": "food-20", "en": "breakfast", "es": "desayuno", "ar": "فطور" },
+        { "id": "food-21", "en": "lunch", "es": "almuerzo", "ar": "غداء" },
+        { "id": "food-22", "en": "dinner", "es": "cena", "ar": "عشاء" }
+      ]
+    },
+    {
+      "id": "verbs",
+      "name": "Common verbs",
+      "cards": [
+        { "id": "verb-01", "en": "to be (identity, permanent)", "es": "ser", "ar": "كان (هوية، صفة دائمة)" },
+        { "id": "verb-02", "en": "to be (state, location)", "es": "estar", "ar": "كان (حالة، مكان)" },
+        { "id": "verb-03", "en": "to have", "es": "tener", "ar": "ملك (عنده)" },
+        { "id": "verb-04", "en": "to do / to make", "es": "hacer", "ar": "فعل / صنع" },
+        { "id": "verb-05", "en": "to go", "es": "ir", "ar": "ذهب" },
+        { "id": "verb-06", "en": "to be able to", "es": "poder", "ar": "استطاع" },
+        { "id": "verb-07", "en": "to want", "es": "querer", "ar": "أراد" },
+        { "id": "verb-08", "en": "to say", "es": "decir", "ar": "قال" },
+        { "id": "verb-09", "en": "to know (a fact)", "es": "saber", "ar": "عرف (معلومة)" },
+        { "id": "verb-10", "en": "to see", "es": "ver", "ar": "رأى" },
+        { "id": "verb-11", "en": "to give", "es": "dar", "ar": "أعطى" },
+        { "id": "verb-12", "en": "to come", "es": "venir", "ar": "جاء" },
+        { "id": "verb-13", "en": "to eat", "es": "comer", "ar": "أكل" },
+        { "id": "verb-14", "en": "to drink", "es": "beber", "alt": ["tomar"], "ar": "شرب" },
+        { "id": "verb-15", "en": "to speak", "es": "hablar", "ar": "تكلم" },
+        { "id": "verb-16", "en": "to live", "es": "vivir", "ar": "عاش / سكن" },
+        { "id": "verb-17", "en": "to work", "es": "trabajar", "ar": "عمل" },
+        { "id": "verb-18", "en": "to study", "es": "estudiar", "ar": "درس" },
+        { "id": "verb-19", "en": "to buy", "es": "comprar", "ar": "اشترى" },
+        { "id": "verb-20", "en": "to need", "es": "necesitar", "ar": "احتاج" }
       ]
     }
   ]

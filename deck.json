@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "dialect": "general",
   "categories": [
     {
@@ -148,7 +148,8 @@
         { "id": "verb-17", "en": "to work", "es": "trabajar", "ar": "عمل" },
         { "id": "verb-18", "en": "to study", "es": "estudiar", "ar": "درس" },
         { "id": "verb-19", "en": "to buy", "es": "comprar", "ar": "اشترى" },
-        { "id": "verb-20", "en": "to need", "es": "necesitar", "ar": "احتاج" }
+        { "id": "verb-20", "en": "to need", "es": "necesitar", "ar": "احتاج" },
+        { "id": "verb-21", "en": "there is / there are", "es": "hay", "ar": "يوجد" }
       ]
     },
     {

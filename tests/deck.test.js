@@ -59,7 +59,7 @@ test('number cards accept their digits', () => {
 test('expected categories and card counts', () => {
   const counts = Object.fromEntries(deck.categories.map((c) => [c.id, c.cards.length]));
   assert.deepEqual(counts, {
-    days: 7, numbers: 21, months: 12, colors: 11, family: 14, food: 22, verbs: 20,
+    days: 7, numbers: 21, months: 12, colors: 11, family: 14, food: 22, verbs: 21,
     travel: 19, house: 19, health: 19, feelings: 18, time: 19, verbs2: 25, arabic: 25,
     'core-01': 100,
   });
@@ -191,6 +191,13 @@ test('no new card repeats a Spanish word that was already in the deck', () => {
     if (OLD.includes(cat.id)) continue;
     assert.ok(!old.has(bare(card.es)), `${card.id} ${card.es} already in the deck`);
   }
+});
+
+test('"hay" (there is / there are) is in Common verbs', () => {
+  const c = cards.find((x) => x.card.id === 'verb-21');
+  assert.equal(c.cat.id, 'verbs');
+  assert.deepEqual([c.card.en, c.card.es, c.card.ar], ['there is / there are', 'hay', 'يوجد']);
+  assert.equal(grade('Hay', c.card, 'verbs').result, 'correct');
 });
 
 console.log('core 2000');

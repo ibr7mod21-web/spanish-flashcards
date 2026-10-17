@@ -102,6 +102,10 @@ html, body {
 #done .bar .brand { justify-self: start; }
 #stats .bar h1, #custom .bar h1 { font-size: 1.1rem; }
 .brand { display: flex; align-items: center; gap: 10px; }
+.bar-actions { display: flex; align-items: center; gap: 4px; }
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; color: var(--on-grad); }
+.icon-btn:active { background: rgba(255, 255, 255, 0.15); }
+#settings .bar h1 { font-size: 1.1rem; }
 .brand img { width: 40px; height: 34px; display: block; }
 
 button {
@@ -378,11 +382,13 @@ button:disabled { opacity: 0.45; cursor: default; }
 
 .weak { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 8px; }
 .weak li { padding-left: 2px; }
+.weak li.empty { list-style: none; margin-left: -1.4em; }
 .weak .es { font-weight: 600; }
 .weak .meta { display: block; font-size: 0.8rem; color: var(--muted); }
 
 .row { display: flex; gap: 10px; }
 .row > * { flex: 1; }
+#settings .row > * { padding: 0 10px; white-space: nowrap; font-size: 0.95rem; }
 textarea {
   width: 100%;
   margin: 10px 0;
@@ -409,6 +415,10 @@ textarea {
 }
 .toggle:first-of-type { border-top: 0; }
 .toggle small { font-size: 0.75rem; }
+.toggle-note { display: block; margin-top: 2px; }
+.toggle { padding: 8px 0; }
+.last-export { margin: 4px 0 12px; font-weight: 600; }
+#set-msg:empty { display: none; }
 .toggle input { width: 22px; height: 22px; margin: 0; accent-color: var(--accent); flex-shrink: 0; }
 .toggle input[switch] { width: auto; height: auto; }
 

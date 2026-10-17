@@ -1,4 +1,4 @@
-// Sounds (Web Audio), haptics (iOS switch-checkbox workaround) and pronunciation (speechSynthesis).
+// Sounds (Web Audio) and pronunciation (speechSynthesis).
 // Everything fails silently. pickVoice is pure and tested in Node.
 (function (root) {
   'use strict';
@@ -39,11 +39,13 @@
   let ctx = null;
   let master = null;
 
-  // iOS only lets audio start inside a user gesture: call this from the first tap.
+  // iOS only starts audio inside a user gesture, and only on touchEND / click / keydown
+  // (touchstart and pointerdown don't count). Safe to call on every such event; it is
+  // a no-op once the context is running.
   function unlockAudio() {
     try {
-      // "ambient" mixes with the user's music and respects the silent switch (Safari 17+).
-      if (navigator.audioSession) navigator.audioSession.type = 'ambient';
+      // "ambient": mixes with the user's music and, like other app sounds, is muted by the silent switch.
+      if (navigator.audioSession && navigator.audioSession.type !== 'ambient') navigator.audioSession.type = 'ambient';
       if (!ctx) {
         const AC = window.AudioContext || window.webkitAudioContext;
         if (!AC) return;
@@ -52,13 +54,17 @@
         master.gain.value = 0.35;
         master.connect(ctx.destination);
       }
-      if (ctx.state !== 'running') ctx.resume();
+      if (ctx.state === 'running') return;
+      ctx.resume();
+      // Playing a silent buffer inside the gesture is what actually unlocks older iOS versions.
       const src = ctx.createBufferSource();
       src.buffer = ctx.createBuffer(1, 1, 22050);
       src.connect(ctx.destination);
       src.start(0);
     } catch (e) { /* no audio */ }
   }
+
+  function audioState() { return ctx ? ctx.state : 'none'; }
 
   // One enveloped oscillator note. f2: optional pitch glide target.
   function tone(t, freq, dur, { type = 'sine', gain = 1, attack = 0.005, f2 = null } = {}) {
@@ -106,33 +112,6 @@
     } catch (e) { /* ignore */ }
   }
 
-  // ---------- haptics ----------
-  // iOS Safari has no navigator.vibrate. On iOS 18+, toggling an <input type="checkbox" switch>
-  // through its <label> plays the system switch haptic. Undocumented; must run inside a user gesture.
-  function pulse() {
-    try {
-      if (navigator.vibrate) { navigator.vibrate(15); return; }
-      const label = document.createElement('label');
-      label.setAttribute('aria-hidden', 'true');
-      label.style.display = 'none';
-      const input = document.createElement('input');
-      input.type = 'checkbox';
-      input.setAttribute('switch', '');
-      label.appendChild(input);
-      document.head.appendChild(label);
-      label.click();
-      document.head.removeChild(label);
-    } catch (e) { /* no haptics */ }
-  }
-
-  const HAPTIC_PULSES = { correct: 1, close: 1, wrong: 2, fanfare: 3 };
-
-  function haptic(kind) {
-    const n = HAPTIC_PULSES[kind] || 1;
-    pulse();
-    for (let i = 1; i < n; i++) setTimeout(pulse, i * 120);
-  }
-
   // ---------- pronunciation ----------
   const synth = window.speechSynthesis;
   let voice = null;
@@ -149,7 +128,8 @@
     try {
       if (!synth || !text) return;
       if (!voice) loadVoice();
-      synth.cancel();
+      // Only cancel when something is playing: on iOS, cancel() right before speak() can drop the new utterance.
+      if (synth.speaking || synth.pending) synth.cancel();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = voice ? voice.lang : 'es-MX';
       if (voice) u.voice = voice;
@@ -158,6 +138,6 @@
     } catch (e) { /* ignore */ }
   }
 
-  Object.assign(api, { unlockAudio, play, haptic, speak, canSpeak: !!synth });
+  Object.assign(api, { unlockAudio, audioState, play, speak, canSpeak: !!synth });
   root.Feedback = api;
 })(typeof self !== 'undefined' ? self : this);

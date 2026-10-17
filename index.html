@@ -27,7 +27,10 @@
         <img src="icons/raven-white.svg" alt="" width="40" height="34">
         <h1>Tridioma</h1>
       </div>
-      <button class="link" id="to-stats" type="button">Stats</button>
+      <div class="bar-actions">
+        <button class="link" id="to-stats" type="button">Stats</button>
+        <button class="icon-btn" id="to-settings" type="button" aria-label="Settings"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+      </div>
     </header>
     <button class="primary big" id="review-all" type="button">Review all due</button>
     <div class="modes">
@@ -182,13 +185,6 @@
     </header>
 
     <section class="panel">
-      <h3>Settings</h3>
-      <label class="toggle"><span>Sound effects</span><input type="checkbox" switch id="set-sound"></label>
-      <label class="toggle"><span>Haptics <small class="muted">(experimental, iOS 18+)</small></span><input type="checkbox" switch id="set-haptics"></label>
-      <label class="toggle"><span>Auto-speak in Study</span><input type="checkbox" switch id="set-speak"></label>
-    </section>
-
-    <section class="panel">
       <h3>Accuracy</h3>
       <p class="accuracy" id="accuracy"></p>
     </section>
@@ -200,15 +196,38 @@
 
     <section class="panel">
       <h3>Weakest cards</h3>
-      <ol class="weak" id="weak"></ol>
+      <ol class="weak" id="weakest-list"></ol>
+    </section>
+  </main>
+
+  <!-- SETTINGS -->
+  <main id="settings" class="screen" hidden>
+    <header class="bar">
+      <button class="link" id="settings-back" type="button">‹ Home</button>
+      <h1>Settings</h1>
+      <span></span>
+    </header>
+
+    <section class="panel">
+      <h3>Sound &amp; speech</h3>
+      <label class="toggle">
+        <span>Sound effects<small class="toggle-note muted">Muted when your iPhone’s silent switch is on.</small></span>
+        <input type="checkbox" switch id="set-sound">
+      </label>
+      <label class="toggle">
+        <span>Auto-speak in Study<small class="toggle-note muted">Says the Spanish word when you flip a card.</small></span>
+        <input type="checkbox" switch id="set-speak">
+      </label>
+      <p class="small" id="set-msg"></p>
     </section>
 
     <section class="panel">
       <h3>Backup</h3>
       <p class="muted small">iOS can clear web app storage. Export your progress now and then, and keep the text somewhere safe (Notes, Files).</p>
+      <p class="last-export" id="last-export"></p>
       <div class="row">
-        <button class="secondary" id="export" type="button">Export</button>
-        <button class="secondary" id="import-open" type="button">Import</button>
+        <button class="secondary" id="export" type="button">Export progress</button>
+        <button class="secondary" id="import-open" type="button">Import progress</button>
       </div>
       <div id="export-box" hidden>
         <p class="small muted" id="export-msg"></p>
@@ -226,6 +245,7 @@
   <script src="grading.js"></script>
   <script src="scheduler.js"></script>
   <script src="feedback.js"></script>
+  <script src="settings.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -4,10 +4,10 @@
   const { grade, CORRECT, WRONG } = window.Grading;
   const S = window.Scheduler;
   const FX = window.Feedback;
+  const Settings = window.Settings;
 
   const PROGRESS_KEY = 'sf.progress.v1';
   const STUDIED_KEY = 'sf.studied.v1';
-  const SETTINGS_KEY = 'sf.settings.v1';
   const CUSTOM_KEY = 'sf.custom.v1';
   const TIP_KEY = 'sf.tipShown';
 
@@ -39,7 +39,8 @@
   let cardIndex = {}; // id → { card, cat }
   let progress = readJSON(PROGRESS_KEY, {});
   let studied = readJSON(STUDIED_KEY, {}); // id → timestamp first flipped in study mode
-  const settings = Object.assign({ sound: true, haptics: true, autoSpeak: true }, readJSON(SETTINGS_KEY, {}));
+  // Settings are read from storage each time they're used (see settings.js), never cached here.
+  function store() { try { return window.localStorage; } catch (e) { return null; } }
 
   function saveProgress() { writeJSON(PROGRESS_KEY, progress); }
 
@@ -62,8 +63,7 @@
 
   // ---------- feedback helpers ----------
   function feedback(kind) {
-    if (settings.sound) FX.play(kind);
-    if (settings.haptics) FX.haptic(kind);
+    if (Settings.get(store(), 'sound')) FX.play(kind);
   }
   function say(text) { FX.speak(text); }
 
@@ -82,7 +82,7 @@
   }
 
   // ---------- screens ----------
-  const screens = ['home', 'card', 'study', 'done', 'stats', 'custom'];
+  const screens = ['home', 'card', 'study', 'done', 'stats', 'custom', 'settings'];
   function show(name) {
     for (const s of screens) $(s).hidden = s !== name;
     window.scrollTo(0, 0);
@@ -365,7 +365,7 @@
     $('flip').classList.toggle('flipped', study.flipped);
     if (study.flipped) {
       if (!studied[id]) { studied[id] = Date.now(); writeJSON(STUDIED_KEY, studied); }
-      if (settings.autoSpeak) say(cardIndex[id].card.es);
+      if (Settings.get(store(), 'autoSpeak')) say(cardIndex[id].card.es);
     }
   }
 
@@ -433,10 +433,6 @@
 
   // ---------- stats ----------
   function renderStats() {
-    $('set-sound').checked = settings.sound;
-    $('set-haptics').checked = settings.haptics;
-    $('set-speak').checked = settings.autoSpeak;
-
     const ids = Object.keys(cardIndex);
     const perBox = [0, 0, 0, 0, 0, 0];
     let unseen = 0, c = 0, cl = 0, w = 0;
@@ -462,10 +458,10 @@
       .filter((id) => progress[id] && progress[id].wrong > 0)
       .sort((a, b) => (progress[b].lastWrongAt || 0) - (progress[a].lastWrongAt || 0))
       .slice(0, 15);
-    const ol = $('weak');
+    const ol = $('weakest-list');
     ol.innerHTML = '';
     if (!weak.length) {
-      ol.innerHTML = '<li class="muted">No misses yet.</li>';
+      ol.innerHTML = '<li class="muted empty">No misses yet.</li>';
     }
     for (const id of weak) {
       const { card } = cardIndex[id];
@@ -483,20 +479,40 @@
       ol.appendChild(li);
     }
 
-    $('export-box').hidden = true;
-    $('import-box').hidden = true;
     show('stats');
   }
 
+  // ---------- settings screen ----------
+  function renderSettings() {
+    $('set-sound').checked = Settings.get(store(), 'sound');
+    $('set-speak').checked = Settings.get(store(), 'autoSpeak');
+    $('set-msg').textContent = '';
+    showLastExport();
+    $('export-box').hidden = true;
+    $('import-box').hidden = true;
+    show('settings');
+  }
+
+  function showLastExport() {
+    const iso = Settings.getLastExport(store());
+    $('last-export').textContent = iso
+      ? 'Last export: ' + new Date(iso).toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      : 'Last export: never';
+  }
+
   function wireSettings() {
-    const map = { 'set-sound': 'sound', 'set-haptics': 'haptics', 'set-speak': 'autoSpeak' };
+    const map = { 'set-sound': 'sound', 'set-speak': 'autoSpeak' };
     for (const [id, key] of Object.entries(map)) {
       $(id).addEventListener('change', (e) => {
-        settings[key] = e.target.checked;
-        writeJSON(SETTINGS_KEY, settings);
-        // Preview what was just switched on.
-        if (settings[key] && key === 'sound') FX.play('correct');
-        if (settings[key] && key === 'autoSpeak') say('hola');
+        const on = e.target.checked;
+        if (!Settings.set(store(), key, on)) {
+          $('set-msg').textContent = 'Couldn’t save this setting on this device.';
+          e.target.checked = Settings.get(store(), key);
+          return;
+        }
+        // Preview what was just switched on (this tap also unlocks iOS audio).
+        if (on && key === 'sound') { FX.unlockAudio(); FX.play('correct'); }
+        if (on && key === 'autoSpeak') say('hola');
       });
     }
   }
@@ -509,6 +525,8 @@
     }, null, 1);
     const box = $('export-text');
     box.value = text;
+    Settings.setLastExport(store(), Date.now());
+    showLastExport();
     $('export-box').hidden = false;
     $('import-box').hidden = true;
 
@@ -572,14 +590,14 @@
 
   // ---------- wiring ----------
   function wire() {
-    // iOS: audio can only start inside a user gesture, so unlock it on the first tap or key.
+    // iOS: audio only starts inside touchend / click / keydown (not pointerdown or touchstart).
+    // Keep trying on each of those until the AudioContext is actually running.
+    const UNLOCK_EVENTS = ['touchend', 'click', 'keydown'];
     const unlock = () => {
       FX.unlockAudio();
-      document.removeEventListener('pointerdown', unlock, true);
-      document.removeEventListener('keydown', unlock, true);
+      if (FX.audioState() === 'running') for (const t of UNLOCK_EVENTS) document.removeEventListener(t, unlock, true);
     };
-    document.addEventListener('pointerdown', unlock, true);
-    document.addEventListener('keydown', unlock, true);
+    for (const t of UNLOCK_EVENTS) document.addEventListener(t, unlock, true);
 
     $('review-all').addEventListener('click', () => startSession(null));
     $('weak').addEventListener('click', () => startQueue(S.weakQueue(deck.categories, progress)));
@@ -597,6 +615,8 @@
     $('custom-start').addEventListener('click', startCustom);
     $('to-stats').addEventListener('click', renderStats);
     $('stats-back').addEventListener('click', renderHome);
+    $('to-settings').addEventListener('click', renderSettings);
+    $('settings-back').addEventListener('click', renderHome);
     $('card-back').addEventListener('click', () => { $('answer').blur(); session = null; renderHome(); });
     $('done-home').addEventListener('click', renderHome);
     $('done-again').addEventListener('click', () => startQueue(S.shuffle(lastCards), { practice: true }));

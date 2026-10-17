@@ -11,9 +11,10 @@ Dialect: general Latin American-neutral Spanish (Duolingo style).
 
 ## Stack
 - Plain HTML/CSS/JS. No framework, no build step, no npm dependencies.
-- Files: `index.html`, `app.js` (UI), `grading.js`, `scheduler.js`, `feedback.js`, `styles.css`, `manifest.webmanifest`, `sw.js`, `icons/`, `deck.json`.
-- Pure logic lives in `grading.js`, `scheduler.js` and `pickVoice` in `feedback.js`; each works in the browser (`window.X`) and Node (`module.exports`).
+- Files: `index.html`, `app.js` (UI), `grading.js`, `scheduler.js`, `feedback.js`, `settings.js`, `styles.css`, `manifest.webmanifest`, `sw.js`, `icons/`, `deck.json`.
+- Pure logic lives in `grading.js`, `scheduler.js`, `settings.js` and `pickVoice` in `feedback.js`; each works in the browser (`window.X`) and Node (`module.exports`).
 - Tests: `for f in tests/*.test.js; do node "$f" || break; done`. Add tests for any new pure logic.
+- `tests/html.test.js`: ids in index.html must be unique and every `$('id')` in app.js must exist. (A duplicate `id="weak"` once made Stats overwrite the Home "Weak words" button and broke every Home button.)
 - New script files must also be added to `SHELL` in `sw.js`.
 - `tools/make_icons.py`: the raven logo lives here (one set of polygons). Writes `icons/icon.svg`, `icons/raven-white.svg` (header logo) and the PNG icons, using headless Google Chrome to rasterize. Run `python3 tools/make_icons.py` after changing the raven.
 - Local preview: `python3 -m http.server 8000`, then open http://localhost:8000
@@ -45,7 +46,8 @@ Dialect: general Latin American-neutral Spanish (Duolingo style).
 2. **Card** (quiz): English word large. Text input with `autocapitalize="off" autocorrect="off" spellcheck="false" lang="es"`. Check button; Enter submits. After answering, the button becomes Next (Enter also advances). "Show answer" counts as wrong. On a typed WRONG answer, an **I was right** link regrades it as CORRECT (`disputeResult`, from the stats before the miss), drops the requeued copy, and stores `{answer, date}` in the card's `disputed` list.
 3. **End of session**: plain heading "Session complete" / "Practice complete" with the score (right = correct + close), tiles, then **Home** (primary) and **Practice again** (practice round on the same cards).
 4. **Study**: flip cards (front: English only; back: Spanish large + Arabic smaller below, `lang="ar" dir="rtl"`; auto-speaks on flip). Swipe left/right or Next/Back, Shuffle. End: "Quiz me on these" quizzes that category (if nothing is due/new there, a practice round).
-5. **Stats**: settings toggles (Sound, Haptics, Auto-speak in Study), cards per box, overall accuracy, 15 weakest cards (most recent misses), Export and Import.
+5. **Stats** (stats only): cards per box, overall accuracy, 15 weakest cards (most recent misses).
+6. **Settings** (gear icon in the Home header): Sound effects, Auto-speak in Study; Backup with Export progress / Import progress and "Last export: <date>".
 
 ## Grading (`grading.js`, pure functions, works in browser and Node)
 - Normalize: lowercase, trim, collapse spaces, strip `¿?¡!.,`
@@ -64,7 +66,7 @@ Dialect: general Latin American-neutral Spanish (Duolingo style).
 - **Weak** (`isWeak`): `wrong > 0 && box <= 1`, OR a CLOSE/WRONG in `recent`. Older stats without `recent` still match the first rule; ranking falls back to `lastWrongAt`.
 
 ## Storage
-- localStorage, every read/write wrapped in try/catch. Keys: `sf.progress.v1` (`{ [cardId]: stats }`), `sf.studied.v1` (`{ [cardId]: timestamp }`, kept separate so studied cards still count as new), `sf.settings.v1` (`{sound, haptics, autoSpeak}`), `sf.custom.v1` (`{cats, count}`), `sf.tipShown`.
+- localStorage, every read/write wrapped in try/catch. Keys: `sf.progress.v1` (`{ [cardId]: stats }`), `sf.studied.v1` (`{ [cardId]: timestamp }`, kept separate so studied cards still count as new), `sf.settings.v1` (`{sound, autoSpeak}`), `sf.lastExport.v1` (ISO date), `sf.custom.v1` (`{cats, count}`), `sf.tipShown`.
 - Export: `{exportedAt, deckVersion, cards: {id: stats}, studied, disputed: [{cardId, answer, date}]}` (`collectDisputed`; for the tutor to review and turn into real `alt`s) → copy to clipboard + iOS share sheet (`navigator.share`), fallback: selectable text box.
 - Import: paste JSON to restore progress (iOS can clear web storage).
 
@@ -74,7 +76,10 @@ iOS does NOT allow the Web Speech API in home-screen web apps. Voice = iOS keybo
 
 ## Feedback (`feedback.js`)
 - Sounds: Web Audio oscillators, no audio files (ding / two-note / thud / fanfare). AudioContext is unlocked on the first tap (iOS). `navigator.audioSession.type = 'ambient'` so it mixes with music and respects the silent switch.
-- Haptics (experimental): iOS has no `navigator.vibrate`; clicking the `<label>` of a hidden `<input type="checkbox" switch>` plays the switch haptic on iOS 18+. Undocumented, must run synchronously inside the user gesture, so call `feedback()` before any async work.
+- **No haptics.** iOS has no `navigator.vibrate`; the hidden `<input switch>` label-click trick is undocumented and did nothing in the home-screen app on the owner's iPhone, so it was removed (don't add a setting that can't be verified to work).
+- **Settings** (`settings.js`): always read with `Settings.get(storage, key)` at the moment of use; never cache them in app state. Unknown/old keys (e.g. `haptics`) are dropped.
+- iOS audio unlock: only `touchend` / `click` / `keydown` count as gestures for audio (not `pointerdown`/`touchstart`); `unlockAudio()` runs on each until the AudioContext is `running`.
+- Speech: only `cancel()` when `speaking || pending` — on iOS, cancel() immediately before speak() can drop the utterance.
 - Pronunciation: `speechSynthesis` (allowed in home-screen apps, unlike speech *recognition*). Voice preference es-MX → es-US → es-419 → any es-*. Quiz: **never auto-speaks**, 🔊 button only. Study: auto-speaks on flip (toggle `autoSpeak`), 🔊 replays.
 
 ## Design

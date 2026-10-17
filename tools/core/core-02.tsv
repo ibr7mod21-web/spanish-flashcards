@@ -1,0 +1,102 @@
+# Core 101–200 (category core-02). Columns: en <TAB> es <TAB> alts (comma-separated) <TAB> ar <TAB> n (numbers only)
+# Order = frequency rank after filtering (see CLAUDE.md "Core 2000"). Self-reviewed. Lines starting with # are ignored.
+to produce	producir		يُنتج
+to occur / to happen	ocurrir	suceder, pasar	يحدث
+to turn out (to be)	resultar		يتبيّن
+end	fin	final	نهاية
+type / kind (sort)	tipo		نوع
+side	lado		جانب
+account / bill (check)	cuenta		حساب / فاتورة
+half / middle	medio	mitad	نصف / وسط
+history / story	historia		تاريخ / قصة
+truth	verdad		حقيقة
+night	noche		ليل / ليلة
+city	ciudad		مدينة
+name	nombre		اسم
+family	familia		عائلة
+month	mes		شهر
+idea	idea		فكرة
+eye	ojo		عين
+point	punto		نقطة
+group	grupo		مجموعة
+important	importante		مهم
+possible	posible		ممكن
+certain (true)	cierto	cierta	صحيح / مؤكَّد
+clear / of course	claro	clara	واضح / طبعًا
+tall / high	alto	alta	طويل / عالٍ
+long	largo	larga	طويل
+small / little (size)	pequeño	pequeña	صغير
+own (belonging to)	propio	propia	خاص بـ
+public	público	pública	عام
+political	político	política	سياسي
+real / actual	real	verdadero, verdadera	حقيقي
+second (2nd)	segundo	segunda	ثانٍ
+together	junto	juntos, junta, juntas	معًا
+such	tal		كهذا / مثل هذا
+whichever / any at all	cualquier	cualquiera	أيّ
+several	varios	varias	عدّة
+both	ambos	ambas	كلا / كلتا
+according to	según		حسب / وفقًا لـ
+during	durante		خلال
+against	contra		ضد
+toward / towards	hacia		نحو
+short (height) / low	bajo	baja	قصير / منخفض
+besides / in addition	además		بالإضافة إلى ذلك
+even (as in "even I know")	incluso		حتى
+maybe / perhaps	quizás	quizá, tal vez	ربما
+neither / not either	tampoco		ولا ... أيضًا
+nobody / no one	nadie		لا أحد
+somebody / someone	alguien		أحدٌ ما
+none / not any	ninguno	ninguna, ningún	ولا واحد
+barely / hardly	apenas		بالكاد
+there (over there)	allí	ahí, allá	هناك
+near / close by	cerca		قريب
+far (away)	lejos		بعيد
+up / upstairs	arriba		فوق / في الأعلى
+down / downstairs	abajo		تحت / في الأسفل
+inside	dentro	adentro	داخل
+outside	fuera	afuera	خارج
+how? (question)	cómo		كيف
+where? (question)	dónde		أين
+when? (question)	cuándo		متى
+who? (question)	quién	quiénes	مَن
+which? (question)	cuál	cuáles	أيّ
+how much? / how many?	cuánto	cuánta, cuántos, cuántas	كم
+why? (question)	por qué		لماذا
+war	guerra		حرب
+government	gobierno		حكومة
+Mr. / sir / gentleman	señor		سيد
+Mrs. / madam / lady	señora		سيدة
+child	niño	niña	طفل
+friend	amigo	amiga	صديق
+death	muerte		موت
+land / earth	tierra		أرض
+body	cuerpo		جسم
+voice	voz		صوت
+face	cara	rostro	وجه
+table	mesa		طاولة
+book	libro		كتاب
+paper	papel		ورق
+money	dinero		مال / نقود
+company / business (firm)	empresa	compañía	شركة
+system	sistema		نظام
+program	programa		برنامج
+service	servicio		خدمة
+level	nivel		مستوى
+process	proceso		عملية
+change (noun)	cambio		تغيير
+reason	razón		سبب
+situation	situación		وضع
+sense / meaning	sentido	significado	معنى / إحساس
+order	orden		ترتيب / أمر
+number	número		رقم / عدد
+state / condition	estado		دولة / حالة
+president	presidente	presidenta	رئيس
+law	ley		قانون
+right (legal)	derecho		حق
+relationship	relación		علاقة
+center	centro		مركز
+area / zone	zona	área	منطقة
+street	calle		شارع
+road / path	camino		طريق
+town / people (a nation)	pueblo		بلدة / شعب

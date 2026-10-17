@@ -1,0 +1,102 @@
+# Core 401–500 (category core-05). Columns: en <TAB> es <TAB> alts (comma-separated) <TAB> ar <TAB> n (numbers only)
+# Order = frequency rank after filtering (see CLAUDE.md "Core 2000"). Self-reviewed. Lines starting with # are ignored.
+to shout / to yell	gritar		يصرخ
+to be quiet / to shut up	callarse	callar	يسكت
+to greet / to say hello	saludar		يُحيّي
+to visit	visitar		يزور
+to invite	invitar		يدعو
+to celebrate	celebrar	festejar	يحتفل
+to fulfill / to turn (an age)	cumplir		يفي بـ / يبلغ (من العمر)
+to join / to unite	unir		يُوحّد / يربط
+to separate	separar		يفصل
+to measure	medir		يقيس
+to weigh	pesar		يزن
+to cost	costar		يُكلّف
+to be worth	valer		يساوي
+to sell	vender		يبيع
+to spend (money)	gastar		يُنفق
+to save (money)	ahorrar		يدّخر
+to charge (money)	cobrar		يتقاضى
+to avoid	evitar		يتجنّب
+to prevent	impedir	prevenir	يمنع
+to forbid / to ban	prohibir		يحظر
+to protect	proteger		يحمي
+to defend	defender		يدافع عن
+to fight / to struggle	luchar	pelear	يكافح / يقاتل
+to break	romper		يكسر
+to fix / to repair	arreglar	reparar	يُصلح
+to build	construir		يبني
+to destroy	destruir		يُدمّر
+to cover	cubrir		يُغطّي
+to fill	llenar		يملأ
+to cook	cocinar		يطبخ
+to get dressed	vestirse		يرتدي ملابسه
+to take a shower / to bathe	ducharse	bañarse	يستحمّ
+to get up (out of bed)	levantarse		ينهض
+to go to bed	acostarse		يذهب إلى الفراش
+to dream	soñar		يحلم
+to imagine	imaginar	imaginarse	يتخيّل
+to doubt	dudar		يشكّ
+to recognize	reconocer		يتعرّف على
+to mean	significar	querer decir	يعني
+to depend	depender		يعتمد
+to belong	pertenecer		ينتمي
+to disappear	desaparecer		يختفي
+to escape	escapar	escaparse, huir	يهرب
+to reach / to catch up with	alcanzar		يبلغ / يلحق بـ
+to approach / to come closer	acercarse		يقترب
+to hand in / to deliver	entregar		يُسلّم
+to give back / to return (something)	devolver		يُعيد / يُرجِع
+to include	incluir		يشمل
+to add	añadir	agregar	يُضيف
+to remove / to take off	quitar	quitarse	يُزيل / يخلع
+to cut	cortar		يقطع
+to stick / to hit	pegar		يلصق / يضرب
+to fly	volar		يطير
+to swim	nadar		يسبح
+to drive	manejar	conducir	يقود (سيارة)
+to sign	firmar		يوقّع
+to draw	dibujar		يرسم
+to paint	pintar		يلوّن / يطلي
+to smoke	fumar		يدخّن
+to rest	descansar		يستريح
+to get married	casarse		يتزوّج
+to kiss	besar		يُقبّل
+to hug	abrazar		يعانق
+to share	compartir		يُشارك
+to trust	confiar		يثق
+to complain	quejarse		يشتكي
+to worry	preocuparse		يقلق
+to fear / to be afraid	temer	tener miedo	يخاف
+to deserve	merecer		يستحقّ
+to organize	organizar		يُنظّم
+to compare	comparar		يُقارن
+to repeat	repetir		يُكرّر
+to translate	traducir		يُترجم
+to pronounce	pronunciar		ينطق
+to spell	deletrear		يتهجّى
+to practice	practicar		يتمرّن / يمارس
+to improve	mejorar		يُحسّن / يتحسّن
+to grow	crecer		ينمو
+to increase	aumentar		يزيد
+to reduce / to decrease	reducir	disminuir	يُقلّل
+to stop (moving)	parar	pararse, detener, detenerse	يتوقّف
+to stop (doing something)	dejar de		يكفّ عن
+to plan	planear	planificar	يُخطّط
+to fail	fallar	fracasar	يفشل
+to succeed	tener éxito	triunfar	ينجح
+to enjoy	disfrutar	gozar	يستمتع
+to suffer	sufrir		يعاني
+to hide	esconder	esconderse, ocultar	يُخفي / يختبئ
+to pull	jalar	halar	يسحب
+to push	empujar		يدفع
+to turn (left / right)	girar	doblar, voltear	ينعطف
+to turn on (a device)	prender	encender	يُشغّل
+to turn off (a device)	apagar		يُطفئ
+to dry	secar		يُجفّف
+to rain	llover		تمطر
+to snow	nevar		تُثلج
+to hurry	apurarse	darse prisa	يستعجل
+to lie (tell lies)	mentir		يكذب
+to steal	robar		يسرق
+to forgive	perdonar	disculpar	يسامح

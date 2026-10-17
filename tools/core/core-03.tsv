@@ -1,0 +1,102 @@
+# Core 201–300 (category core-03). Columns: en <TAB> es <TAB> alts (comma-separated) <TAB> ar <TAB> n (numbers only)
+# Order = frequency rank after filtering (see CLAUDE.md "Core 2000"). Self-reviewed. Lines starting with # are ignored.
+field / countryside	campo		حقل / ريف
+sea	mar		بحر
+river	río		نهر
+sun	sol		شمس
+light	luz		ضوء
+fire	fuego		نار
+air	aire		هواء
+sky	cielo		سماء
+tree	árbol		شجرة
+animal	animal		حيوان
+dog	perro	perra	كلب
+minute	minuto		دقيقة
+century	siglo		قرن
+date (calendar)	fecha		تاريخ
+beginning	principio	comienzo, inicio	بداية
+step	paso		خطوة
+art	arte		فن
+music	música		موسيقى
+movie / film	película		فيلم
+game	juego		لعبة
+team	equipo		فريق
+match (sport) / party (political)	partido		مباراة / حزب
+school	escuela		مدرسة
+class	clase		صف / درس
+teacher	profesor	profesora, maestro, maestra	معلّم / أستاذ
+student	estudiante	alumno, alumna	طالب
+university	universidad		جامعة
+question (noun)	pregunta		سؤال
+answer (noun)	respuesta		جواب / إجابة
+language	idioma	lengua	لغة
+letter (mail)	carta		رسالة (بريدية)
+message	mensaje		رسالة
+piece of news	noticia		خبر
+phone	teléfono		هاتف
+photo	foto	fotografía	صورة (فوتوغرافية)
+image / picture	imagen		صورة
+color	color		لون
+price	precio		سعر
+market	mercado		سوق
+shop	tienda		متجر
+bank	banco		بنك / مصرف
+office	oficina		مكتب
+hospital	hospital		مستشفى
+church	iglesia		كنيسة
+hotel	hotel		فندق
+restaurant	restaurante		مطعم
+car	carro	coche, auto	سيارة
+train	tren		قطار
+airplane	avión		طائرة
+boat / ship	barco		سفينة / قارب
+party (celebration)	fiesta		حفلة
+gift / present	regalo		هدية
+birthday	cumpleaños		عيد ميلاد
+love (noun)	amor		حب
+fear	miedo		خوف
+hope (noun)	esperanza		أمل
+dream (noun)	sueño		حلم
+peace	paz		سلام
+lie (untruth)	mentira		كذبة
+mistake / error	error	equivocación	خطأ
+help (noun)	ayuda		مساعدة
+danger	peligro		خطر
+luck	suerte		حظ
+fault / blame	culpa		ذنب / لوم
+doubt	duda		شك
+opinion	opinión		رأي
+interest	interés		اهتمام / فائدة
+need (noun)	necesidad		حاجة
+reality	realidad		واقع
+experience	experiencia		تجربة / خبرة
+memory	recuerdo	memoria	ذكرى / ذاكرة
+mind	mente		عقل
+soul	alma		روح
+health	salud		صحة
+illness / disease	enfermedad		مرض
+food / meal	comida		طعام / وجبة
+drink (noun)	bebida		مشروب
+clothes	ropa		ملابس
+shirt	camisa		قميص
+shoe	zapato		حذاء
+dress	vestido		فستان
+pants / trousers	pantalón	pantalones	بنطال
+short (length)	corto	corta	قصير
+wide	ancho	ancha	عريض
+fat	gordo	gorda	سمين
+thin / slim	delgado	delgada, flaco, flaca	نحيف
+young	joven		شاب / صغير السن
+old (age)	viejo	vieja	عجوز / قديم
+ancient / former	antiguo	antigua	قديم / سابق
+modern	moderno	moderna	حديث
+easy	fácil		سهل
+difficult	difícil		صعب
+simple	simple	sencillo, sencilla	بسيط
+rich / tasty	rico	rica	غني / لذيذ
+poor	pobre		فقير
+expensive	caro	cara	غالٍ
+cheap	barato	barata	رخيص
+full	lleno	llena	ممتلئ
+empty	vacío	vacía	فارغ
+clean (adjective)	limpio	limpia	نظيف

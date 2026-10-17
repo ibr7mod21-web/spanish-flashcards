@@ -1,0 +1,102 @@
+# Core 301–400 (category core-04). Columns: en <TAB> es <TAB> alts (comma-separated) <TAB> ar <TAB> n (numbers only)
+# Order = frequency rank after filtering (see CLAUDE.md "Core 2000"). Self-reviewed. Lines starting with # are ignored.
+dirty	sucio	sucia	متّسخ
+pretty / nice	bonito	bonita, lindo, linda	جميل
+beautiful	hermoso	hermosa, bello, bella	جميل / بديع
+ugly	feo	fea	قبيح
+handsome / good-looking	guapo	guapa	وسيم
+strong	fuerte		قوي
+weak	débil		ضعيف
+fast / quick	rápido	rápida	سريع
+slow	lento	lenta	بطيء
+hot (to the touch)	caliente		ساخن
+cold	frío	fría	بارد
+dry	seco	seca	جاف
+wet	mojado	mojada	مبلّل
+hard (not soft)	duro	dura	صلب / قاسٍ
+soft	suave	blando, blanda	ناعم / طري
+sweet	dulce		حلو
+false / fake	falso	falsa	زائف / كاذب
+equal / alike	igual		متساوٍ / مثل
+different	diferente	distinto, distinta	مختلف
+free (not busy / not tied)	libre		حر / غير مشغول
+free (no cost)	gratis	gratuito, gratuita	مجاني
+safe / sure	seguro	segura	آمن / متأكد
+dangerous	peligroso	peligrosa	خطير
+necessary	necesario	necesaria	ضروري
+impossible	imposible		مستحيل
+interesting	interesante		مثير للاهتمام
+normal	normal		عادي
+special	especial		خاص / مميز
+common	común		شائع
+strange / weird	raro	rara, extraño, extraña	غريب
+ready	listo	lista	جاهز
+busy	ocupado	ocupada	مشغول
+open (adjective)	abierto	abierta	مفتوح
+closed	cerrado	cerrada	مغلق
+dark	oscuro	oscura	مظلم / داكن
+whole / entire	entero	entera	كامل
+next (following)	próximo	próxima, siguiente	القادم / التالي
+previous	anterior		سابق
+third	tercero	tercera, tercer	ثالث
+younger / lesser	menor		أصغر / أقل
+worse / worst	peor		أسوأ
+huge	enorme		ضخم
+too much / too (excessively)	demasiado	demasiada	أكثر من اللازم
+quite / enough	bastante		إلى حدٍّ ما / كافٍ
+to show (display)	mostrar		يُظهر / يَعرض
+to teach	enseñar		يُعلّم
+to learn	aprender		يتعلّم
+to open	abrir		يفتح
+to close	cerrar		يُغلق
+to create	crear		يُنشئ / يخلق
+to consider	considerar		يعتبر
+to hear	oír		يسمع
+to listen (to)	escuchar		يستمع إلى
+to turn into (become)	convertirse	volverse	يتحوّل إلى
+to form	formar		يُشكّل
+to die	morir	morirse	يموت
+to be born	nacer		يُولد
+to kill	matar		يقتل
+to accept	aceptar		يقبل
+to carry out (not "to realize")	realizar		يُنجز / يُنفّذ
+to suppose	suponer		يفترض
+to explain	explicar		يشرح
+to offer	ofrecer		يعرض / يقدّم
+to help	ayudar		يساعد
+to decide	decidir		يقرّر
+to prepare	preparar		يُعِدّ / يُحضّر
+to use	usar	utilizar	يستخدم
+to play (a game, sport)	jugar		يلعب
+to run	correr		يركض / يجري
+to walk	caminar	andar	يمشي
+to go up / to climb	subir		يصعد
+to go down / to get off	bajar	bajarse	ينزل
+to lift / to raise	levantar		يرفع
+to sit down	sentarse		يجلس
+to move (something / yourself)	mover	moverse	يُحرّك / يتحرّك
+to touch / to play (an instrument)	tocar		يلمس / يعزف
+to sing	cantar		يغنّي
+to dance	bailar		يرقص
+to throw (away)	tirar	echar, lanzar	يرمي
+to grab / to take hold of	agarrar		يُمسك
+to put away (store)	guardar		يحفظ / يضع جانبًا
+to send	enviar	mandar	يُرسل
+to present / to introduce	presentar		يُقدّم / يُعرّف بـ
+to represent	representar		يُمثّل
+to direct / to lead	dirigir		يُدير / يقود
+to develop	desarrollar		يُطوّر
+to indicate / to point out	indicar	señalar	يُشير إلى
+to notice	notar		يلاحظ
+to discover	descubrir		يكتشف
+to try out / to taste	probar		يُجرّب / يتذوّق
+to prefer	preferir		يُفضّل
+to like (to be pleasing)	gustar		يُعجِب
+to love (a thing) / to delight	encantar		يُعجِب كثيرًا
+to hate	odiar		يكره
+to love (a person)	amar	querer	يُحبّ
+to matter (be important)	importar		يهمّ
+to be missing / to lack	faltar		ينقص
+to laugh	reír	reírse	يضحك
+to cry	llorar		يبكي
+to smile	sonreír		يبتسم

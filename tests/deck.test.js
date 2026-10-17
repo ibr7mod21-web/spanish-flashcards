@@ -61,7 +61,7 @@ test('expected categories and card counts', () => {
   assert.deepEqual(counts, {
     days: 7, numbers: 21, months: 12, colors: 11, family: 14, food: 22, verbs: 21,
     travel: 19, house: 19, health: 19, feelings: 18, time: 19, verbs2: 25, arabic: 25,
-    'core-01': 100,
+    'core-01': 100, 'core-02': 100, 'core-03': 100, 'core-04': 100, 'core-05': 100, 'core-06': 100,
   });
 });
 
@@ -224,17 +224,19 @@ test('Core: no grammar-only words, no proper nouns, no articles on nouns', () =>
   }
 });
 
-test('Core: no word repeats anything else in the deck (same spelling)', () => {
+test('Core: each main Spanish word was new when added (alts may reuse earlier words as synonyms)', () => {
   const low = (s) => s.normalize('NFC').toLowerCase();
-  const owner = new Map();
+  const seen = new Map(); // word → first card id that used it (as es or alt), in deck order
+  const mainOwner = new Map();
   for (const { card, cat } of cards) {
-    if (!/^core-/.test(cat.id)) for (const f of [card.es].concat(card.alt || [])) owner.set(low(f), card.id);
-  }
-  for (const cat of core) for (const c of cat.cards) {
-    for (const f of [c.es].concat(c.alt || [])) {
-      assert.ok(!owner.has(low(f)) || owner.get(low(f)) === c.id, `${c.id} "${f}" already in ${owner.get(low(f))}`);
-      owner.set(low(f), c.id);
+    if (/^core-/.test(cat.id)) {
+      const k = low(card.es);
+      assert.ok(!seen.has(k), `${card.id} "${card.es}" was already used by ${seen.get(k)}`);
     }
+    // a Core card never shares its main word with another card (older homonyms like naranja are allowed)
+    if (/^core-/.test(cat.id)) assert.ok(!mainOwner.has(low(card.es)), `${card.id} and ${mainOwner.get(low(card.es))} share "${card.es}"`);
+    mainOwner.set(low(card.es), card.id);
+    for (const f of [card.es].concat(card.alt || [])) if (!seen.has(low(f))) seen.set(low(f), card.id);
   }
 });
 
@@ -275,6 +277,36 @@ test('core-01 fixes (Oct 2026): extra alts, clearer English, Arabic for deber', 
   assert.equal(byId['core-01-034'].card.ar, 'يجب / مَدين بـ');
   assert.equal(byId['core-01-062'].card.en, 'to look at (on purpose)');
   assert.equal(byId['core-01-093'].card.en, 'older / greater');
+});
+
+test('Core 101–600: checklist spot checks (synonyms, feminine forms, clarifiers)', () => {
+  const byEn = Object.fromEntries(cards.map((x) => [x.card.en, x]));
+  const ok = [
+    ['to occur / to happen', 'pasar'], ['to occur / to happen', 'suceder'], ['to love (a person)', 'querer'],
+    ['weather', 'tiempo'], ['car', 'coche'], ['car', 'auto'], ['to drive', 'conducir'], ['to use', 'utilizar'],
+    ['teacher', 'maestra'], ['student', 'alumna'], ['friend', 'amiga'], ['maybe / perhaps', 'tal vez'],
+    ['to mean', 'querer decir'], ['to turn on (a device)', 'encender'], ['apartment', 'apartamento'],
+    ['quickly', 'rápido'], ['employee / worker', 'trabajadora'], ['thin / slim', 'flaca'], ['third', 'tercer'],
+    ['none / not any', 'ningún'], ['there (over there)', 'allá'], ['how much? / how many?', 'cuántas'],
+  ];
+  for (const [en, ans] of ok) {
+    assert.ok(byEn[en], `missing prompt "${en}"`);
+    assert.equal(grade(ans, byEn[en].card, byEn[en].cat.id).result, 'correct', `${en}: ${ans}`);
+  }
+  // clarified prompts that must stay distinct
+  for (const en of ['fish (animal)', 'fish (food)', 'free (no cost)', 'free (not busy / not tied)', 'to try', 'to try out / to taste',
+    'too much / too (excessively)', 'also / too', 'to carry out (not "to realize")', 'currently / nowadays (not "actually")']) {
+    assert.ok(byEn[en], en);
+  }
+});
+
+test('Core verbs from core-02 on: Arabic in the present tense (starts with ي / ت)', () => {
+  for (const cat of core.filter((c) => c.id >= 'core-02')) {
+    for (const c of cat.cards) {
+      if (!/^to /.test(c.en)) continue;
+      assert.ok(/^[يت]/.test(c.ar), `${c.id} ${c.es}: ${c.ar}`);
+    }
+  }
 });
 
 test('person nouns accept the feminine form', () => {

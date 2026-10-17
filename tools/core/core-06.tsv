@@ -1,0 +1,102 @@
+# Core 501–600 (category core-06). Columns: en <TAB> es <TAB> alts (comma-separated) <TAB> ar <TAB> n (numbers only)
+# Order = frequency rank after filtering (see CLAUDE.md "Core 2000"). Self-reviewed. Lines starting with # are ignored.
+weekend	fin de semana		عطلة نهاية الأسبوع
+clock / watch	reloj		ساعة (لقياس الوقت)
+building	edificio		مبنى
+apartment	departamento	apartamento	شقة
+garden	jardín		حديقة
+park	parque		منتزه
+town square / plaza	plaza		ساحة
+corner (of a street)	esquina		ناصية / زاوية الشارع
+neighborhood	barrio		حيّ
+island	isla		جزيرة
+mountain	montaña		جبل
+forest	bosque		غابة
+lake	lago		بحيرة
+rain	lluvia		مطر
+snow	nieve		ثلج
+wind	viento		ريح
+weather	clima	tiempo	طقس
+heat	calor		حرارة
+moon	luna		قمر
+star	estrella		نجمة
+nature	naturaleza		طبيعة
+cat	gato	gata	قطة
+horse	caballo		حصان
+bird	pájaro	ave	طائر
+cow	vaca		بقرة
+fish (animal)	pez		سمكة
+flower	flor		زهرة
+plant	planta		نبات
+soup	sopa		حساء
+salad	ensalada		سلطة
+dessert	postre		حلوى
+plate / dish	plato		صحن
+glass (for drinking)	vaso		كوب
+bottle	botella		زجاجة
+knife	cuchillo		سكين
+fork	tenedor		شوكة
+spoon	cuchara		ملعقة
+box	caja		صندوق
+bag	bolsa		كيس
+object	objeto		غرض
+piece	pedazo	trozo, pieza	قطعة
+size	tamaño		حجم
+weight	peso		وزن
+line	línea		خط
+page	página		صفحة
+tale / short story	cuento		حكاية
+example	ejemplo		مثال
+exam / test	examen	prueba	امتحان
+homework / task	tarea		واجب / مهمة
+exercise	ejercicio		تمرين
+meeting	reunión		اجتماع
+plan (noun)	plan		خطة
+project	proyecto		مشروع
+goal / aim	objetivo	meta	هدف
+result	resultado		نتيجة
+cause	causa		سبب
+effect	efecto		تأثير
+quality	calidad		جودة
+amount / quantity	cantidad		كمية
+strength / force	fuerza		قوة
+energy	energía		طاقة
+speed	velocidad		سرعة
+distance	distancia		مسافة
+direction / address	dirección		اتجاه / عنوان
+exit / departure	salida		مخرج / مغادرة
+entrance	entrada		مدخل
+return (going back)	vuelta	regreso	عودة
+police	policía		شرطة
+army	ejército		جيش
+king	rey		ملك
+queen	reina		ملكة
+boss	jefe	jefa	رئيس (في العمل)
+employee / worker	empleado	empleada, trabajador, trabajadora	موظّف / عامل
+owner	dueño	dueña	مالك / صاحب
+guest	invitado	invitada	ضيف
+customer / client	cliente	clienta	زبون
+boyfriend / girlfriend	novio	novia	حبيب / خطيب
+baby	bebé		رضيع
+boy / young man	chico	chica, muchacho, muchacha	فتى / شاب
+adult	adulto	adulta	بالغ
+population	población		سكان
+society	sociedad		مجتمع
+culture	cultura		ثقافة
+religion	religión		دين
+education	educación		تعليم
+science	ciencia		علم
+technology	tecnología		تكنولوجيا
+economy	economía		اقتصاد
+business (deal / trade)	negocio		تجارة / صفقة
+salary / wages	sueldo	salario	راتب
+slowly	despacio	lentamente	ببطء
+quickly	rápidamente	rápido	بسرعة
+really / truly	realmente	de verdad, verdaderamente	حقًا
+especially	especialmente	sobre todo	خصوصًا
+currently / nowadays (not "actually")	actualmente	hoy en día	حاليًا
+finally / at last	finalmente	por fin, al fin	أخيرًا
+suddenly	de repente		فجأة
+probably	probablemente		على الأرجح
+exactly	exactamente		بالضبط
+immediately	inmediatamente	enseguida, de inmediato	فورًا

@@ -37,6 +37,11 @@ def load_batch(nn):
     return rows
 
 
+def earlier(cat_id, nn):
+    """Categories a batch is checked against: everything except core-NN and later Core batches."""
+    return not (cat_id.startswith('core-') and int(cat_id[5:]) >= int(nn))
+
+
 def low(s):
     return unicodedata.normalize('NFC', s.strip().lower())
 
@@ -48,7 +53,7 @@ def check(rows, deck, nn):
     cat_id = f'core-{nn}'
     old_es, old_en, old_bare = {}, {}, {}
     for cat in deck['categories']:
-        if cat['id'] == cat_id:
+        if not earlier(cat['id'], nn):
             continue
         for c in cat['cards']:
             for f in [c['es']] + c.get('alt', []):
@@ -87,6 +92,58 @@ def check(rows, deck, nn):
     if len(rows) != 100:
         problems.append(f'batch has {len(rows)} words, expected 100')
     return problems, notes
+
+
+def gloss_parts(en):
+    """'to look at (on purpose)' -> [('to look at', 'on purpose')]; 'then / so' -> [('then',''), ('so','')]."""
+    out = []
+    # split on " / " only outside brackets: "business (deal / trade)" is one part
+    parts, depth, cur = [], 0, ''
+    text = en.lower()
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        depth += ch == '('
+        depth -= ch == ')'
+        if depth == 0 and text.startswith(' / ', i):
+            parts.append(cur)
+            cur = ''
+            i += 3
+            continue
+        cur += ch
+        i += 1
+    parts.append(cur)
+    for part in parts:
+        part = part.strip()
+        base, clar = part, ''
+        if '(' in part:
+            base, clar = part.split('(', 1)[0].strip(), part.split('(', 1)[1].rstrip(')').strip()
+        out.append((base, clar))
+    return out
+
+
+# Checklist 2/3: an English gloss shared with another card, where at least one side has no clarifier,
+# could point to two Spanish answers. Reported as notes to review by hand.
+def gloss_notes(rows, deck, nn):
+    notes = []
+    others = []
+    for cat in deck['categories']:
+        if not earlier(cat['id'], nn):
+            continue
+        for c in cat['cards']:
+            others.append((c['id'], c['es'], c.get('alt', []), gloss_parts(c['en'])))
+    for i, r in enumerate(rows, 1):
+        others.append((f'row {i:03d}', r['es'], r['alt'], gloss_parts(r['en'])))
+    for i, r in enumerate(rows, 1):
+        me = f'row {i:03d}'
+        for base, clar in gloss_parts(r['en']):
+            for oid, oes, oalt, oparts in others:
+                if oid == me or r['es'] in [oes] + oalt or oes in [r['es']] + r['alt']:
+                    continue
+                for obase, oclar in oparts:
+                    if base == obase and (not clar or not oclar or clar == oclar):
+                        notes.append(f'{i:03d} {r["es"]}: "{r["en"]}" overlaps "{oid}" {oes} on "{base}"')
+    return notes
 
 
 def table(rows, nn):
@@ -136,7 +193,8 @@ def main():
     rows = load_batch(nn)
     deck = json.load(open(DECK, encoding='utf-8'))
     problems, notes = check(rows, deck, nn)
-    if '--table' in sys.argv or '--write' not in sys.argv:
+    notes += gloss_notes(rows, deck, nn)
+    if '--table' in sys.argv or ('--write' not in sys.argv and '--quiet' not in sys.argv):
         print(table(rows, nn))
     print('\nProblems:' if problems else '\nChecks: all passed')
     for p in problems:

@@ -121,10 +121,18 @@ The ~2,000 most common Spanish words, general Latin American Spanish, added in b
 - **Clarifiers** in brackets when the English is ambiguous or already used: "time (occurrence)" vez / "time (duration)" tiempo, "to know (a person, a place)" conocer, "you (formal)" / "you (informal)", "when (not a question)", "what? (question)".
 - **Alts**: real general-LatAm synonyms only (volver/regresar, aquí/acá, conseguir/lograr/obtener). Number words get `n` (their value).
 - **Arabic**: every card has an accurate Modern Standard Arabic `ar`; verbs in dictionary form (past, 3rd person masc.); possessives shown with an example (ـي (مثل: بيتي)).
+- **Self-review checklist** (the tutor no longer reviews every table — check every batch against this before adding it):
+  1. **Alts**: every common correct answer for the English prompt — neuter demonstratives (esto, eso, aquello), feminine forms of adjectives and person nouns, common synonyms (volver/regresar, conseguir/lograr), adverb forms (solo/solamente). An alt may be another card's word (e.g. "to happen" accepts pasar); a card's **main** `es` must be new to the deck.
+  2. **One answer per prompt**: if another common Spanish word would also be right and isn't an alt, add it as an alt or add a clarifier in brackets ("to look at (on purpose)" so ver isn't marked wrong).
+  3. **No clash** with any existing card: the same English must not lead to a different Spanish answer elsewhere. The checker prints "overlaps" notes for shared English glosses; resolve each one (clarifier, alt, or accept when the rest of the prompt disambiguates).
+  4. **Arabic**: accurate MSA covering every sense in the prompt (must / owe → يجب / مَدين بـ). **Verbs from core-02 on use the present tense, 3rd person masculine** (يكتب, يجب — not كتب, وجب). (Older categories and core-01 still use the past form.)
+  5. **Precise meanings**: don't map near-misses (bigger ≠ mayor → "older / greater"; false friends like realizar = to carry out, actualmente = currently get a clarifier).
+  6. **Mark anything unsure** and list it in the batch report for the tutor.
+- **Report** (self-review mode): don't print full tables; give the deck version, card counts and only the unsure cards (max ~20, with the reason).
 - **Workflow** for each batch:
   1. Write `tools/core/core-NN.tsv` (columns: en, es, alts, ar, n).
-  2. `python3 tools/add_core_batch.py NN` → checks the rules against the whole deck and prints the review table (id, en, es, alt, ar). Show the owner the table for the tutor **before** adding.
+  2. `python3 tools/add_core_batch.py NN --quiet` → checks the rules against the whole deck (problems must be fixed; notes reviewed). Without `--quiet` it also prints the review table (id, en, es, alt, ar).
   3. `python3 tools/add_core_batch.py NN --write` → appends the category, bumps the deck version, appends ids to `tests/known-ids.txt`.
   4. Add `'core-NN': 100` to the counts in `tests/deck.test.js`, run all tests, bump `CACHE_VERSION` if app code changed, commit and push, print the deck summary.
-- Done so far: core-01.
+- Done so far: core-01 (tutor-reviewed), core-02 … core-06 (self-reviewed, Oct 2026).
 

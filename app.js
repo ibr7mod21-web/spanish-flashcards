@@ -18,7 +18,9 @@
     try {
       const raw = localStorage.getItem(key);
       const v = raw ? JSON.parse(raw) : fallback;
-      return v && typeof v === 'object' ? v : fallback;
+      // Keep the stored value only if it has the same kind as the fallback (object vs boolean).
+      if (v === null || typeof v !== typeof fallback) return fallback;
+      return v;
     } catch (e) {
       return fallback;
     }
@@ -170,8 +172,8 @@
 
     const r = grade(answer, card, cat.id);
     // Feedback first, while we are still inside the tap/keypress (iOS needs the user gesture).
+    // No auto-speak in the quiz: the 🔊 button replays on demand.
     feedback(r.result);
-    if (settings.autoSpeak) say(card.es);
 
     if (!session.practice) {
       progress[card.id] = S.applyResult(progress[card.id], r.result, answer, Date.now());
@@ -412,7 +414,7 @@
 
     try {
       if (navigator.share) {
-        await navigator.share({ title: 'Flashcards progress', text });
+        await navigator.share({ title: 'Tridioma progress', text });
       }
     } catch (e) { /* user cancelled or not allowed: the text box is the fallback */ }
   }

@@ -3,15 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Flashcards</title>
-  <meta name="description" content="Spanish flashcards with spaced repetition">
-  <meta name="theme-color" content="#f6f5f2" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#16171a" media="(prefers-color-scheme: dark)">
+  <title>Tridioma</title>
+  <meta name="description" content="Tridioma: learn Spanish from English, with Arabic alongside">
+  <meta name="theme-color" content="#1e40af" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#2547c9" media="(prefers-color-scheme: dark)">
   <meta name="color-scheme" content="light dark">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Español">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Tridioma">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -23,7 +23,10 @@
   <!-- HOME -->
   <main id="home" class="screen" hidden>
     <header class="bar">
-      <h1>Español</h1>
+      <div class="brand">
+        <img src="icons/raven-white.svg" alt="" width="40" height="34">
+        <h1>Tridioma</h1>
+      </div>
       <button class="link" id="to-stats" type="button">Stats</button>
     </header>
     <button class="primary big" id="review-all" type="button">Review all due</button>
@@ -83,7 +86,6 @@
         <span class="flip-inner">
           <span class="face front">
             <span class="face-word" id="study-en"></span>
-            <span class="face-hint muted small">Tap to flip</span>
           </span>
           <span class="face back">
             <span class="face-word" id="study-es" lang="es"></span>
@@ -96,7 +98,7 @@
         <button class="secondary icon" id="study-speak" type="button" aria-label="Say it">🔊</button>
         <button class="primary" id="study-next" type="button">Next ›</button>
       </div>
-      <p class="muted small center-text">Swipe left for next, right for back.</p>
+      <p class="muted small center-text">Tap the card to flip. Swipe left for next, right for back.</p>
     </div>
 
     <div id="study-end" class="study-end" hidden>
@@ -127,7 +129,7 @@
       <h3>Settings</h3>
       <label class="toggle"><span>Sound effects</span><input type="checkbox" switch id="set-sound"></label>
       <label class="toggle"><span>Haptics <small class="muted">(experimental, iOS 18+)</small></span><input type="checkbox" switch id="set-haptics"></label>
-      <label class="toggle"><span>Auto-speak Spanish</span><input type="checkbox" switch id="set-speak"></label>
+      <label class="toggle"><span>Auto-speak in Study</span><input type="checkbox" switch id="set-speak"></label>
     </section>
 
     <section class="panel">

@@ -1,98 +1,122 @@
-"""Generate the app icons as PNGs (no dependencies). Run: python3 tools/make_icons.py
+"""Generate the Tridioma raven logo (SVG) and app icons (PNG).
 
-Design: teal background, a tilted back card and a white front card with an amber stripe.
+Run: python3 tools/make_icons.py
+Needs Google Chrome installed (used headless to turn the SVG into PNGs); no Python packages.
+
+The raven is one set of polygons (RAVEN below), drawn in two treatments:
+- "color": dark navy facets with a cyan eye, on the blue→violet gradient (app icons)
+- "mono":  white facets at different opacities, for the gradient header (icons/raven-white.svg)
 """
-import math
 import os
-import struct
-import zlib
+import shutil
+import subprocess
+import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, '..', 'icons')
+CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
-BG = (31, 111, 92)
-BACK = (124, 196, 176)
-FRONT = (255, 255, 255)
-STRIPE = (242, 180, 90)
+GRAD_FROM = '#1e40af'  # deep blue
+GRAD_TO = '#6d28d9'    # violet
 
-
-def rounded_rect_sdf(px, py, cx, cy, hw, hh, r, angle):
-    # Signed distance from point to a rotated rounded rectangle (negative = inside).
-    c, s = math.cos(-angle), math.sin(-angle)
-    x, y = px - cx, py - cy
-    x, y = x * c - y * s, x * s + y * c
-    qx, qy = abs(x) - hw + r, abs(y) - hh + r
-    outside = math.hypot(max(qx, 0), max(qy, 0))
-    return outside + min(max(qx, qy), 0) - r
-
-
-def render(size, inset):
-    # inset: fraction of the canvas reserved as padding (bigger for maskable icons).
-    pixels = bytearray()
-    scale = size * (1 - 2 * inset)
-    off = size * inset
-    shapes = [
-        # (cx, cy, half-w, half-h, radius, angle-deg, colour, stripe)
-        (0.54, 0.47, 0.25, 0.31, 0.05, 12, BACK, False),
-        (0.46, 0.53, 0.25, 0.31, 0.05, -6, FRONT, True),
-    ]
-    ss = 3  # supersampling for smooth edges
-    for j in range(size):
-        pixels.append(0)  # PNG filter byte
-        for i in range(size):
-            acc = [0, 0, 0]
-            for sj in range(ss):
-                for si in range(ss):
-                    x = (i + (si + 0.5) / ss - off) / scale
-                    y = (j + (sj + 0.5) / ss - off) / scale
-                    col = BG
-                    for cx, cy, hw, hh, r, ang, colour, stripe in shapes:
-                        a = math.radians(ang)
-                        if rounded_rect_sdf(x, y, cx, cy, hw, hh, r, a) < 0:
-                            col = colour
-                            if stripe:
-                                # stripe across the card, in card space
-                                c, s = math.cos(-a), math.sin(-a)
-                                ly = (x - cx) * s + (y - cy) * c
-                                lx = (x - cx) * c - (y - cy) * s
-                                if -0.05 < ly < 0.02 and abs(lx) < 0.15:
-                                    col = STRIPE
-                    acc[0] += col[0]; acc[1] += col[1]; acc[2] += col[2]
-            n = ss * ss
-            pixels += bytes((acc[0] // n, acc[1] // n, acc[2] // n))
-    return bytes(pixels)
+# Raven in profile facing right, on a 100×100 grid: (name, points, color fill, mono opacity)
+RAVEN = [
+    ('tail',       '28,58 10,80 19,87 38,68',          '#0b0d2a', 0.62),
+    ('wing-tip',   '28,58 38,68 48,62',                '#141846', 0.74),
+    ('wing-low',   '40,40 28,58 48,62',                '#1a1f55', 0.86),
+    ('wing-up',    '40,40 60,40 48,62',                '#232a6b', 0.95),
+    ('back',       '53,28 40,40 60,40',                '#10133a', 0.78),
+    ('breast',     '60,40 70,44 66,56 54,70 48,62',    '#0d1033', 0.70),
+    ('head',       '72,29 63,22 53,28 60,40 70,44 73,41', '#181d52', 1.00),
+    ('beak-top',   '90,38 72,29 73,36',                '#cfd4ff', 1.00),
+    ('beak-low',   '90,38 73,36 73,41',                '#8e96e6', 0.80),
+    ('leg-1',      '50,69 52,69 51,79 49,79',          '#0b0d2a', 0.70),
+    ('leg-2',      '57,67 59,67 59,79 57,79',          '#0b0d2a', 0.70),
+]
+EYE = (65.5, 31.5)
 
 
-def write_png(path, size, raw):
-    def chunk(tag, data):
-        c = struct.pack('>I', len(data)) + tag + data
-        return c + struct.pack('>I', zlib.crc32(tag + data) & 0xffffffff)
-    png = b'\x89PNG\r\n\x1a\n'
-    png += chunk(b'IHDR', struct.pack('>IIBBBBB', size, size, 8, 2, 0, 0, 0))
-    png += chunk(b'IDAT', zlib.compress(raw, 9))
-    png += chunk(b'IEND', b'')
-    with open(path, 'wb') as f:
-        f.write(png)
+def raven_shapes(mode):
+    parts = []
+    for _name, pts, color, alpha in RAVEN:
+        if mode == 'color':
+            parts.append(f'<polygon points="{pts}" fill="{color}"/>')
+        else:
+            parts.append(f'<polygon points="{pts}" fill="#fff" fill-opacity="{alpha}"/>')
+    x, y = EYE
+    if mode == 'color':
+        parts.append(f'<circle cx="{x}" cy="{y}" r="2.8" fill="#5eead4"/>')
+        parts.append(f'<circle cx="{x + 0.7}" cy="{y - 0.6}" r="0.9" fill="#fff"/>')
+    else:
+        parts.append(f'<circle cx="{x}" cy="{y}" r="2.6" fill="{GRAD_FROM}"/>')
+    # perch
+    stroke = '#5eead4' if mode == 'color' else '#fff'
+    parts.append(f'<rect x="34" y="78.5" width="40" height="3" rx="1.5" fill="{stroke}" fill-opacity="{0.9 if mode == "color" else 0.6}"/>')
+    return '\n  '.join(parts)
 
 
-SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-<rect width="100" height="100" rx="22" fill="#1f6f5c"/>
-<rect x="29" y="16" width="50" height="62" rx="5" fill="#7cc4b0" transform="rotate(12 54 47)"/>
-<g transform="rotate(-6 46 53)"><rect x="21" y="22" width="50" height="62" rx="5" fill="#fff"/>
-<rect x="31" y="48" width="30" height="7" rx="1.5" fill="#f2b45a"/></g>
+def gradient_defs():
+    return (f'<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">'
+            f'<stop offset="0" stop-color="{GRAD_FROM}"/><stop offset="1" stop-color="{GRAD_TO}"/>'
+            f'</linearGradient></defs>')
+
+
+def icon_svg(radius, scale):
+    """Gradient tile with the colour raven. radius: corner radius (0 = full bleed). scale: raven size."""
+    # Raven art spans roughly x 10–90, y 22–87; centre it in the tile.
+    tx = 50 - 50 * scale
+    ty = 50 - 54.5 * scale
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+{gradient_defs()}
+<rect width="100" height="100" rx="{radius}" fill="url(#g)"/>
+<g transform="translate({tx:.2f} {ty:.2f}) scale({scale})">
+  {raven_shapes('color')}
+</g>
 </svg>
-"""
+'''
+
+
+def mono_svg():
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="8 18 86 72">
+  {raven_shapes('mono')}
+</svg>
+'''
+
+
+def rasterize(svg, size, path):
+    with tempfile.TemporaryDirectory() as tmp:
+        html = os.path.join(tmp, 'icon.html')
+        with open(html, 'w') as f:
+            f.write(f'<!doctype html><html><body style="margin:0;background:transparent">'
+                    f'<div style="width:{size}px;height:{size}px">{svg.replace("<svg ", f"<svg width={size} height={size} ", 1)}</div>'
+                    f'</body></html>')
+        subprocess.run([
+            CHROME, '--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run',
+            f'--user-data-dir={os.path.join(tmp, "profile")}',
+            '--default-background-color=00000000', '--force-device-scale-factor=1',
+            f'--window-size={size},{size}', f'--screenshot={path}', 'file://' + html,
+        ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
 
 if __name__ == '__main__':
+    if not os.path.exists(CHROME):
+        raise SystemExit('Google Chrome not found at ' + CHROME)
     os.makedirs(OUT, exist_ok=True)
-    for name, size, inset in [
-        ('apple-touch-icon.png', 180, 0.0),
-        ('icon-192.png', 192, 0.0),
-        ('icon-512.png', 512, 0.0),
-        ('icon-maskable-512.png', 512, 0.12),
-    ]:
-        write_png(os.path.join(OUT, name), size, render(size, inset))
-        print('wrote', name)
+
     with open(os.path.join(OUT, 'icon.svg'), 'w') as f:
-        f.write(SVG)
-    print('wrote icon.svg')
+        f.write(icon_svg(radius=22, scale=0.92))
+    with open(os.path.join(OUT, 'raven-white.svg'), 'w') as f:
+        f.write(mono_svg())
+    print('wrote icon.svg, raven-white.svg')
+
+    full = icon_svg(radius=0, scale=0.92)       # iOS rounds the corners itself; must be opaque
+    rounded = icon_svg(radius=22, scale=0.92)
+    maskable = icon_svg(radius=0, scale=0.70)   # keep the raven inside Android's safe zone
+    for name, svg, size in [
+        ('apple-touch-icon.png', full, 180),
+        ('icon-192.png', rounded, 192),
+        ('icon-512.png', rounded, 512),
+        ('icon-maskable-512.png', maskable, 512),
+    ]:
+        rasterize(svg, size, os.path.join(OUT, name))
+        print('wrote', name)

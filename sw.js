@@ -1,5 +1,5 @@
 // Bump CACHE_VERSION on every app change (html/css/js/icons/manifest).
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE = 'sf-' + CACHE_VERSION;
 
 const SHELL = [
@@ -13,6 +13,7 @@ const SHELL = [
   'manifest.webmanifest',
   'deck.json',
   'icons/icon.svg',
+  'icons/raven-white.svg',
   'icons/apple-touch-icon.png',
   'icons/icon-192.png',
   'icons/icon-512.png',

@@ -1,5 +1,6 @@
-# Spanish Flashcards (PWA)
+# Tridioma (PWA)
 
+**Tridioma** (tri + idioma: Arabic, English, Spanish). Mascot: a geometric raven.
 Personal Spanish flashcard web app for the owner's iPhone, installed to the home screen.
 The owner has limited programming experience: explain any manual step in plain, numbered steps.
 
@@ -14,9 +15,9 @@ Dialect: general Latin American-neutral Spanish (Duolingo style).
 - Pure logic lives in `grading.js`, `scheduler.js` and `pickVoice` in `feedback.js`; each works in the browser (`window.X`) and Node (`module.exports`).
 - Tests: `for f in tests/*.test.js; do node "$f" || break; done`. Add tests for any new pure logic.
 - New script files must also be added to `SHELL` in `sw.js`.
-- `tools/make_icons.py`: regenerates the PNG icons (pure Python, no dependencies).
+- `tools/make_icons.py`: the raven logo lives here (one set of polygons). Writes `icons/icon.svg`, `icons/raven-white.svg` (header logo) and the PNG icons, using headless Google Chrome to rasterize. Run `python3 tools/make_icons.py` after changing the raven.
 - Local preview: `python3 -m http.server 8000`, then open http://localhost:8000
-- Hosting: GitHub Pages, public repo `spanish-flashcards`. All paths are **relative** (the site lives under `/spanish-flashcards/`).
+- Hosting: GitHub Pages, public repo `spanish-flashcards` (kept despite the rebrand: renaming the repo changes the URL, and a new URL means new, empty storage on the phone). All paths are **relative** (the site lives under `/spanish-flashcards/`).
 
 ## Offline / service worker
 - `sw.js` precaches the app shell (cache-first).
@@ -29,18 +30,18 @@ Dialect: general Latin American-neutral Spanish (Duolingo style).
 { version, dialect, categories: [ { id, name, cards: [ { id, en, es, alt?: [], ar? } ] } ] }
 ```
 - Card ids are permanent; progress is keyed by id. **Never renumber or reuse ids.** New cards get new ids.
-- `alt`: other accepted answers. `ar`: Arabic hint shown after answering.
+- `alt`: other accepted answers. `ar`: Arabic translation (every card has one; `tests/deck.test.js` enforces it). Months use the يناير…ديسمبر names.
 - Number cards (category id `numbers`): the numeric value is taken from the trailing digits of the id (`num-06` → 6), or from an optional `n` field if present.
 
 ## Screens
 1. **Home**: category list with due/new counts and **Study** / **Quiz** buttons per category, plus "Review all due" button.
 2. **Card**: English word large. Text input with `autocapitalize="off" autocorrect="off" spellcheck="false" lang="es"`. Check button; Enter submits. After answering, the button becomes Next (Enter also advances). "Show answer" counts as wrong.
-3. **Study**: flip cards (front English, tap → Spanish + `ar`, auto-speaks). Swipe left/right or Next/Back, Shuffle. End: "Quiz me on these" quizzes that category (if nothing is due/new there, a *practice* round on the studied cards that does not change the schedule).
-4. **Stats**: settings toggles (Sound, Haptics, Auto-speak), cards per box, overall accuracy, 15 weakest cards (most recent misses), Export and Import.
+3. **Study**: flip cards (front: English only; back: Spanish large + Arabic smaller below, `lang="ar" dir="rtl"`; auto-speaks on flip). Swipe left/right or Next/Back, Shuffle. End: "Quiz me on these" quizzes that category (if nothing is due/new there, a *practice* round on the studied cards that does not change the schedule).
+4. **Stats**: settings toggles (Sound, Haptics, Auto-speak in Study), cards per box, overall accuracy, 15 weakest cards (most recent misses), Export and Import.
 
 ## Grading (`grading.js`, pure functions, works in browser and Node)
 - Normalize: lowercase, trim, collapse spaces, strip `¿?¡!.,`
-- Equals `es` or any `alt` → CORRECT (green)
+- Equals `es` or any `alt` → CORRECT (teal)
 - Equal after removing diacritics (á→a, é→e, í→i, ó→o, ú→u, ñ→n, ü→u) → CLOSE (amber), show the correct spelling
 - Number cards: a digit answer equal to the number → CORRECT, and show the spelled form (iOS dictation writes digits)
 - Otherwise → WRONG (red), show the answer
@@ -64,9 +65,15 @@ iOS does NOT allow the Web Speech API in home-screen web apps. Voice = iOS keybo
 ## Feedback (`feedback.js`)
 - Sounds: Web Audio oscillators, no audio files (ding / two-note / thud / fanfare). AudioContext is unlocked on the first tap (iOS). `navigator.audioSession.type = 'ambient'` so it mixes with music and respects the silent switch.
 - Haptics (experimental): iOS has no `navigator.vibrate`; clicking the `<label>` of a hidden `<input type="checkbox" switch>` plays the switch haptic on iOS 18+. Undocumented, must run synchronously inside the user gesture, so call `feedback()` before any async work.
-- Pronunciation: `speechSynthesis` (allowed in home-screen apps, unlike speech *recognition*). Voice preference es-MX → es-US → es-419 → any es-*. Auto-speak after each answer reveal and each study flip; 🔊 button replays.
+- Pronunciation: `speechSynthesis` (allowed in home-screen apps, unlike speech *recognition*). Voice preference es-MX → es-US → es-419 → any es-*. Quiz: **never auto-speaks**, 🔊 button only. Study: auto-speaks on flip (toggle `autoSpeak`), 🔊 replays.
 
 ## Design
 Mobile-first, iPhone safe areas (`viewport-fit=cover` + `env(safe-area-inset-*)`), large type, big tap targets (≥44px),
 light and dark mode via `prefers-color-scheme`, minimal and clean. Input font-size ≥16px so iOS doesn't zoom.
 Small animations (slide-in, answer flash, pop-in, shake, progress bar, card flip); all disabled under `prefers-reduced-motion`.
+
+## Brand colours (`styles.css` tokens)
+- Primary: deep blue → violet gradient (`--grad`, #1e40af → #6d28d9; dark mode #2547c9 → #7c3aed) on the header band, primary buttons, progress bars, due pills. White text on it.
+- Header band runs under the status bar (`apple-mobile-web-app-status-bar-style: black-translucent`).
+- Feedback: CORRECT teal (`--correct`), CLOSE amber (`--close`), WRONG red (`--wrong`), each with a `-bg` and `-flash` variant.
+- `tests/contrast.test.js` reads the tokens from styles.css and checks WCAG AA in light and dark; keep it passing when changing colours.

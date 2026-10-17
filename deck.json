@@ -1,18 +1,18 @@
 {
-  "version": 1,
+  "version": 2,
   "dialect": "general",
   "categories": [
     {
       "id": "days",
       "name": "Days of the week",
       "cards": [
-        { "id": "days-01", "en": "Monday", "es": "lunes" },
-        { "id": "days-02", "en": "Tuesday", "es": "martes" },
-        { "id": "days-03", "en": "Wednesday", "es": "miércoles" },
-        { "id": "days-04", "en": "Thursday", "es": "jueves" },
-        { "id": "days-05", "en": "Friday", "es": "viernes" },
+        { "id": "days-01", "en": "Monday", "es": "lunes", "ar": "الاثنين" },
+        { "id": "days-02", "en": "Tuesday", "es": "martes", "ar": "الثلاثاء" },
+        { "id": "days-03", "en": "Wednesday", "es": "miércoles", "ar": "الأربعاء" },
+        { "id": "days-04", "en": "Thursday", "es": "jueves", "ar": "الخميس" },
+        { "id": "days-05", "en": "Friday", "es": "viernes", "ar": "الجمعة" },
         { "id": "days-06", "en": "Saturday", "es": "sábado", "ar": "السبت" },
-        { "id": "days-07", "en": "Sunday", "es": "domingo" }
+        { "id": "days-07", "en": "Sunday", "es": "domingo", "ar": "الأحد" }
       ]
     },
     {
@@ -20,44 +20,44 @@
       "name": "Numbers 0-20",
       "cards": [
         { "id": "num-00", "en": "zero", "es": "cero", "ar": "صفر" },
-        { "id": "num-01", "en": "one", "es": "uno", "alt": ["un", "una"] },
-        { "id": "num-02", "en": "two", "es": "dos" },
-        { "id": "num-03", "en": "three", "es": "tres" },
-        { "id": "num-04", "en": "four", "es": "cuatro" },
-        { "id": "num-05", "en": "five", "es": "cinco" },
-        { "id": "num-06", "en": "six", "es": "seis" },
-        { "id": "num-07", "en": "seven", "es": "siete" },
-        { "id": "num-08", "en": "eight", "es": "ocho" },
-        { "id": "num-09", "en": "nine", "es": "nueve" },
-        { "id": "num-10", "en": "ten", "es": "diez" },
-        { "id": "num-11", "en": "eleven", "es": "once" },
-        { "id": "num-12", "en": "twelve", "es": "doce" },
-        { "id": "num-13", "en": "thirteen", "es": "trece" },
-        { "id": "num-14", "en": "fourteen", "es": "catorce" },
-        { "id": "num-15", "en": "fifteen", "es": "quince" },
-        { "id": "num-16", "en": "sixteen", "es": "dieciséis", "alt": ["diez y seis"] },
-        { "id": "num-17", "en": "seventeen", "es": "diecisiete", "alt": ["diez y siete"] },
-        { "id": "num-18", "en": "eighteen", "es": "dieciocho", "alt": ["diez y ocho"] },
-        { "id": "num-19", "en": "nineteen", "es": "diecinueve", "alt": ["diez y nueve"] },
-        { "id": "num-20", "en": "twenty", "es": "veinte" }
+        { "id": "num-01", "en": "one", "es": "uno", "alt": ["un", "una"], "ar": "واحد" },
+        { "id": "num-02", "en": "two", "es": "dos", "ar": "اثنان" },
+        { "id": "num-03", "en": "three", "es": "tres", "ar": "ثلاثة" },
+        { "id": "num-04", "en": "four", "es": "cuatro", "ar": "أربعة" },
+        { "id": "num-05", "en": "five", "es": "cinco", "ar": "خمسة" },
+        { "id": "num-06", "en": "six", "es": "seis", "ar": "ستة" },
+        { "id": "num-07", "en": "seven", "es": "siete", "ar": "سبعة" },
+        { "id": "num-08", "en": "eight", "es": "ocho", "ar": "ثمانية" },
+        { "id": "num-09", "en": "nine", "es": "nueve", "ar": "تسعة" },
+        { "id": "num-10", "en": "ten", "es": "diez", "ar": "عشرة" },
+        { "id": "num-11", "en": "eleven", "es": "once", "ar": "أحد عشر" },
+        { "id": "num-12", "en": "twelve", "es": "doce", "ar": "اثنا عشر" },
+        { "id": "num-13", "en": "thirteen", "es": "trece", "ar": "ثلاثة عشر" },
+        { "id": "num-14", "en": "fourteen", "es": "catorce", "ar": "أربعة عشر" },
+        { "id": "num-15", "en": "fifteen", "es": "quince", "ar": "خمسة عشر" },
+        { "id": "num-16", "en": "sixteen", "es": "dieciséis", "alt": ["diez y seis"], "ar": "ستة عشر" },
+        { "id": "num-17", "en": "seventeen", "es": "diecisiete", "alt": ["diez y siete"], "ar": "سبعة عشر" },
+        { "id": "num-18", "en": "eighteen", "es": "dieciocho", "alt": ["diez y ocho"], "ar": "ثمانية عشر" },
+        { "id": "num-19", "en": "nineteen", "es": "diecinueve", "alt": ["diez y nueve"], "ar": "تسعة عشر" },
+        { "id": "num-20", "en": "twenty", "es": "veinte", "ar": "عشرون" }
       ]
     },
     {
       "id": "months",
       "name": "Months",
       "cards": [
-        { "id": "mon-01", "en": "January", "es": "enero" },
-        { "id": "mon-02", "en": "February", "es": "febrero" },
-        { "id": "mon-03", "en": "March", "es": "marzo" },
-        { "id": "mon-04", "en": "April", "es": "abril" },
-        { "id": "mon-05", "en": "May", "es": "mayo" },
-        { "id": "mon-06", "en": "June", "es": "junio" },
-        { "id": "mon-07", "en": "July", "es": "julio" },
-        { "id": "mon-08", "en": "August", "es": "agosto" },
-        { "id": "mon-09", "en": "September", "es": "septiembre", "alt": ["setiembre"] },
-        { "id": "mon-10", "en": "October", "es": "octubre" },
-        { "id": "mon-11", "en": "November", "es": "noviembre" },
-        { "id": "mon-12", "en": "December", "es": "diciembre" }
+        { "id": "mon-01", "en": "January", "es": "enero", "ar": "يناير" },
+        { "id": "mon-02", "en": "February", "es": "febrero", "ar": "فبراير" },
+        { "id": "mon-03", "en": "March", "es": "marzo", "ar": "مارس" },
+        { "id": "mon-04", "en": "April", "es": "abril", "ar": "أبريل" },
+        { "id": "mon-05", "en": "May", "es": "mayo", "ar": "مايو" },
+        { "id": "mon-06", "en": "June", "es": "junio", "ar": "يونيو" },
+        { "id": "mon-07", "en": "July", "es": "julio", "ar": "يوليو" },
+        { "id": "mon-08", "en": "August", "es": "agosto", "ar": "أغسطس" },
+        { "id": "mon-09", "en": "September", "es": "septiembre", "alt": ["setiembre"], "ar": "سبتمبر" },
+        { "id": "mon-10", "en": "October", "es": "octubre", "ar": "أكتوبر" },
+        { "id": "mon-11", "en": "November", "es": "noviembre", "ar": "نوفمبر" },
+        { "id": "mon-12", "en": "December", "es": "diciembre", "ar": "ديسمبر" }
       ]
     }
   ]

@@ -5,7 +5,7 @@
   const INTERVALS = [0, 1, 2, 4, 8, 16]; // days, indexed by box
   const MAX_BOX = INTERVALS.length - 1;
   const SESSION_MAX = 20;
-  const SESSION_NEW = 8;
+  const SESSION_NEW = 10; // default; the app passes the "New words per session" setting
   const WEAK_MAX = 20;
   const RECENT = 3; // attempts kept in stats.recent
   const DAY = 86400000;
@@ -22,9 +22,9 @@
     return (a, b) => progress[a].box - progress[b].box || progress[a].due - progress[b].due;
   }
 
-  // Quiz queue for the given categories: due cards (lowest box first) + up to 8 new cards, max 20.
+  // Quiz queue for the given categories: due cards (lowest box first) + up to newMax new cards, max 20.
   // New cards that were studied (in study mode) fill the new-card slots first.
-  function buildQueue(categories, progress, studied, now) {
+  function buildQueue(categories, progress, studied, now, newMax) {
     const due = [];
     const freshStudied = [];
     const freshOther = [];
@@ -37,7 +37,7 @@
     }
     due.sort(byBoxThenDue(progress));
     const queue = due.slice(0, SESSION_MAX);
-    const room = Math.max(0, Math.min(SESSION_NEW, SESSION_MAX - queue.length));
+    const room = Math.max(0, Math.min(newMax || SESSION_NEW, SESSION_MAX - queue.length));
     return queue.concat(freshStudied.concat(freshOther).slice(0, room));
   }
 

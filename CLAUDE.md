@@ -36,7 +36,8 @@ Dialect: general Latin American-neutral Spanish (Duolingo style).
 - Ambiguous English gets a clarifier in brackets, e.g. `orange (color)` / `orange (fruit)`; English prompts must be unique (tested).
 - Categories (id prefix): days, numbers, months, colors (`col-`), family (`fam-`), food (`food-`), verbs (`verb-`), travel (`trav-`), house (`house-`), health (`hlth-`), feelings (`feel-`), time (`time-`), verbs2 (`verb2-`), arabic (`arab-`).
 - `arLabel` (category, optional): text shown above the Arabic on the Study card back and the quiz reveal. Only `arabic` (Arabic origins) uses it: `"From Arabic:"`, and its `ar` is the Arabic **source** word exactly as given by the owner (not a translation).
-- Adjectives accept the feminine form as an `alt` (tested for feelings/health). Gendered nouns (cousin, neighbor, doctor) don't get the other gender unless asked.
+- Adjectives accept the feminine form as an `alt` (tested for feelings/health).
+- **Person nouns** (doctor, neighbor, teacher, friend, mayor…) accept the feminine form as an `alt` (médico → médica/doctora, vecino → vecina, alcalde → alcaldesa), in Core and the rest of the deck. Exception: pairs that already have separate male/female cards (family: brother/sister, cousin (male)/(female), uncle/aunt…). Invariable nouns (turista, persona) need nothing.
 - Before adding words: check against every existing `es` and `alt` (accent-insensitive) and skip duplicates; tests block a new card repeating an older card's Spanish. Verbs' `ar` uses the Arabic dictionary form (past, 3rd person masc.). Arabic-origin Spanish words show the Arabic root (azúcar → السكر, aceite → الزيت, arroz → الرز).
 - `alt`: other accepted answers. `ar`: Arabic translation (every card has one; `tests/deck.test.js` enforces it). Months use the يناير…ديسمبر names.
 - Number cards (category id `numbers`): the numeric value is taken from the trailing digits of the id (`num-06` → 6), or from an optional `n` field if present.
@@ -50,7 +51,7 @@ Dialect: general Latin American-neutral Spanish (Duolingo style).
 3. **End of session**: plain heading "Session complete" / "Practice complete" with the score (right = correct + close), tiles, then **Home** (primary) and **Practice again** (practice round on the same cards).
 4. **Study**: flip cards (front: English only; back: Spanish large + Arabic smaller below, `lang="ar" dir="rtl"`; auto-speaks on flip). Swipe left/right or Next/Back, Shuffle. End: "Quiz me on these" quizzes that category (if nothing is due/new there, a practice round).
 5. **Stats** (stats only): cards per box, overall accuracy, 15 weakest cards (most recent misses).
-6. **Settings** (gear icon in the Home header): Sound effects, Auto-speak in Study; **Cloud sync** (token field, Connect, status, Sync now, Disconnect); Backup with Export progress / Import progress and "Last export: <date>" (kept as the emergency backup).
+6. **Settings** (gear icon in the Home header): Learning → **New words per session** 5 / 10 / 15 / 20 (default 10, `newPerSession`); Sound effects, Auto-speak in Study; **Cloud sync** (token field, Connect, status, Sync now, Disconnect); Backup with Export progress / Import progress and "Last export: <date>" (kept as the emergency backup).
 
 ## Grading (`grading.js`, pure functions, works in browser and Node)
 - Normalize: lowercase, trim, collapse spaces, strip `¿?¡!.,`
@@ -63,13 +64,13 @@ Dialect: general Latin American-neutral Spanish (Duolingo style).
 ## Scheduler (Leitner, `scheduler.js`)
 - Boxes 0–5, intervals `[0, 1, 2, 4, 8, 16]` days (due = start of today + interval).
 - CORRECT or CLOSE → box+1 (max 5). WRONG → box 0, and requeue the card 3–5 cards later in the same session.
-- Session = due cards (lowest box first) + up to 8 new cards, max 20 total. New cards already **studied** fill the new-card slots first.
+- Session = due cards (lowest box first) + up to `newPerSession` new cards (setting, default 10; `buildQueue(..., newMax)`), max 20 total. New cards already **studied** fill the new-card slots first.
 - Per card: `box, due, seen, correct, close, wrong, lastWrongAnswers` (last 3), `lastSeen`, plus `lastWrongAt` (ranks Stats "weakest"), `recent` (last 3 results, newest first) and `lastMissAt` (last CLOSE or WRONG).
 - **Practice rule** (`applyResult(..., { practice: true })`): WRONG still drops to box 0 / due now and counts as a miss; CORRECT/CLOSE count toward stats but don't change box or due date. Used by Practice anyway, Practice again and Study → quiz when nothing is due.
 - **Weak** (`isWeak`): `wrong > 0 && box <= 1`, OR a CLOSE/WRONG in `recent`. Older stats without `recent` still match the first rule; ranking falls back to `lastWrongAt`.
 
 ## Storage
-- localStorage, every read/write wrapped in try/catch. Keys: `sf.progress.v1` (`{ [cardId]: stats }`), `sf.studied.v1` (`{ [cardId]: timestamp }`, kept separate so studied cards still count as new), `sf.settings.v1` (`{sound, autoSpeak}`), `sf.lastExport.v1` (ISO date), `sf.custom.v1` (`{cats, count}`), `sf.tipShown`.
+- localStorage, every read/write wrapped in try/catch. Keys: `sf.progress.v1` (`{ [cardId]: stats }`), `sf.studied.v1` (`{ [cardId]: timestamp }`, kept separate so studied cards still count as new), `sf.settings.v1` (`{sound, autoSpeak, newPerSession}`; each key validated against `Settings.SCHEMA`), `sf.lastExport.v1` (ISO date), `sf.custom.v1` (`{cats, count}`), `sf.tipShown`.
 - Export: `{exportedAt, deckVersion, cards: {id: stats}, studied, disputed: [{cardId, answer, date}]}` (`collectDisputed`; for the tutor to review and turn into real `alt`s) → copy to clipboard + iOS share sheet (`navigator.share`), fallback: selectable text box.
 - Import: paste JSON to restore progress (iOS can clear web storage).
 
@@ -109,4 +110,21 @@ Small animations (slide-in, answer flash, pop-in, shake, progress bar, card flip
 - `node tools/progress_report.js` downloads progress.json from tridioma-data with `gh` (the Mac's gh login, not the phone's token) and prints a plain-text report to paste to the tutor: cards per box, accuracy, categories (mastered = every card at box 4+), the 20 weakest cards (`weakQueue`) with the wrong answers typed, and disputed "I was right" answers.
 - `node tools/progress_report.js --file export.json` does the same from a manual export.
 - When the owner asks for "the tutor report", run it and give them the output.
+
+## Core 2000
+The ~2,000 most common Spanish words, general Latin American Spanish, added in batches of 100.
+- **Categories**: `core-01` "Core 1–100", `core-02` "Core 101–200", … `core-20`. Card ids `core-NN-NNN` (e.g. `core-01-001`), permanent like all ids.
+- **Order**: lemma frequency, based on Mark Davies' *A Frequency Dictionary of Spanish* (Corpus del Español) as remembered, nudged toward spoken use (e.g. usted, tú, bueno rank a little higher than in written-only lists). It is approximate within a few ranks; that's fine. Each batch = the next 100 **eligible** words in that order, so a word skipped by the rules below doesn't leave a gap.
+- **Skip**: words already anywhere in the deck (same spelling as any `es` or `alt`); proper nouns; pure grammar words that make bad flashcards (articles, de, a, en, y, o, que, se, object pronouns le/lo/me/te/nos, su, por, para, con, ni, pues, the auxiliary haber). **Keep** useful function words (sin, entre, aunque, también, porque, cuando, si, muy, más) and subject pronouns.
+- Words that differ only by an accent are different words and both allowed (si/sí, el/él, que/qué); the checker notes them.
+- **Form**: verbs as infinitives; nouns without the article; adjectives masculine with the feminine (and apocopated forms: buen, gran, primer, algún) as `alt`; person nouns with the feminine as `alt`.
+- **Clarifiers** in brackets when the English is ambiguous or already used: "time (occurrence)" vez / "time (duration)" tiempo, "to know (a person, a place)" conocer, "you (formal)" / "you (informal)", "when (not a question)", "what? (question)".
+- **Alts**: real general-LatAm synonyms only (volver/regresar, aquí/acá, conseguir/lograr/obtener). Number words get `n` (their value).
+- **Arabic**: every card has an accurate Modern Standard Arabic `ar`; verbs in dictionary form (past, 3rd person masc.); possessives shown with an example (ـي (مثل: بيتي)).
+- **Workflow** for each batch:
+  1. Write `tools/core/core-NN.tsv` (columns: en, es, alts, ar, n).
+  2. `python3 tools/add_core_batch.py NN` → checks the rules against the whole deck and prints the review table (id, en, es, alt, ar). Show the owner the table for the tutor **before** adding.
+  3. `python3 tools/add_core_batch.py NN --write` → appends the category, bumps the deck version, appends ids to `tests/known-ids.txt`.
+  4. Add `'core-NN': 100` to the counts in `tests/deck.test.js`, run all tests, bump `CACHE_VERSION` if app code changed, commit and push, print the deck summary.
+- Done so far: core-01.
 

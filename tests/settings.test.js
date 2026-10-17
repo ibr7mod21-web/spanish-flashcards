@@ -27,20 +27,20 @@ const brokenStorage = {
 console.log('settings.js');
 
 test('defaults when nothing is stored: sound on, auto-speak on', () => {
-  assert.deepEqual(Settings.read(fakeStorage()), { sound: true, autoSpeak: true });
+  assert.deepEqual(Settings.read(fakeStorage()), { sound: true, autoSpeak: true, newPerSession: 10 });
 });
 
 test('set() saves to storage and get() reads it back', () => {
   const st = fakeStorage();
   assert.equal(Settings.set(st, 'sound', false), true);
   assert.equal(Settings.get(st, 'sound'), false);
-  assert.deepEqual(JSON.parse(st.data[Settings.KEY]), { sound: false, autoSpeak: true });
+  assert.deepEqual(JSON.parse(st.data[Settings.KEY]), { sound: false, autoSpeak: true, newPerSession: 10 });
 });
 
 test('get() reads storage at call time (no startup cache)', () => {
   const st = fakeStorage();
   assert.equal(Settings.get(st, 'autoSpeak'), true);
-  st.setItem(Settings.KEY, JSON.stringify({ sound: true, autoSpeak: false })); // changed behind its back
+  st.setItem(Settings.KEY, JSON.stringify({ sound: true, autoSpeak: false, newPerSession: 10 })); // changed behind its back
   assert.equal(Settings.get(st, 'autoSpeak'), false);
 });
 
@@ -49,30 +49,30 @@ test('turning one setting off leaves the other alone', () => {
   Settings.set(st, 'autoSpeak', false);
   Settings.set(st, 'sound', false);
   Settings.set(st, 'autoSpeak', true);
-  assert.deepEqual(Settings.read(st), { sound: false, autoSpeak: true });
+  assert.deepEqual(Settings.read(st), { sound: false, autoSpeak: true, newPerSession: 10 });
 });
 
 test('old "haptics" key and unknown keys are dropped', () => {
   const st = fakeStorage({ [Settings.KEY]: JSON.stringify({ sound: false, haptics: true, extra: 1 }) });
-  assert.deepEqual(Settings.read(st), { sound: false, autoSpeak: true });
+  assert.deepEqual(Settings.read(st), { sound: false, autoSpeak: true, newPerSession: 10 });
   Settings.set(st, 'autoSpeak', false);
-  assert.deepEqual(JSON.parse(st.data[Settings.KEY]), { sound: false, autoSpeak: false });
+  assert.deepEqual(JSON.parse(st.data[Settings.KEY]), { sound: false, autoSpeak: false, newPerSession: 10 });
 });
 
 test('non-boolean values fall back to the default', () => {
   const st = fakeStorage({ [Settings.KEY]: JSON.stringify({ sound: 'no', autoSpeak: 0 }) });
-  assert.deepEqual(Settings.read(st), { sound: true, autoSpeak: true });
+  assert.deepEqual(Settings.read(st), { sound: true, autoSpeak: true, newPerSession: 10 });
 });
 
 test('corrupt JSON → defaults', () => {
-  assert.deepEqual(Settings.read(fakeStorage({ [Settings.KEY]: '{not json' })), { sound: true, autoSpeak: true });
-  assert.deepEqual(Settings.read(fakeStorage({ [Settings.KEY]: 'true' })), { sound: true, autoSpeak: true });
+  assert.deepEqual(Settings.read(fakeStorage({ [Settings.KEY]: '{not json' })), { sound: true, autoSpeak: true, newPerSession: 10 });
+  assert.deepEqual(Settings.read(fakeStorage({ [Settings.KEY]: 'true' })), { sound: true, autoSpeak: true, newPerSession: 10 });
 });
 
 test('storage that throws → defaults, and set() reports failure', () => {
-  assert.deepEqual(Settings.read(brokenStorage), { sound: true, autoSpeak: true });
+  assert.deepEqual(Settings.read(brokenStorage), { sound: true, autoSpeak: true, newPerSession: 10 });
   assert.equal(Settings.set(brokenStorage, 'sound', false), false);
-  assert.deepEqual(Settings.read(null), { sound: true, autoSpeak: true });
+  assert.deepEqual(Settings.read(null), { sound: true, autoSpeak: true, newPerSession: 10 });
 });
 
 test('unknown setting names are rejected', () => {
@@ -111,9 +111,27 @@ test('set() records when settings last changed', () => {
 test('replace() applies synced settings and their timestamp, dropping junk', () => {
   const st = fakeStorage();
   Settings.replace(st, { sound: false, autoSpeak: false, token: 'nope' }, 999);
-  assert.deepEqual(Settings.read(st), { sound: false, autoSpeak: false });
+  assert.deepEqual(Settings.read(st), { sound: false, autoSpeak: false, newPerSession: 10 });
   assert.equal(Settings.getUpdatedAt(st), 999);
   assert.ok(!st.data[Settings.KEY].includes('token'));
+});
+
+test('New words per session: default 10; only 5 / 10 / 15 / 20 are accepted', () => {
+  const st = fakeStorage();
+  assert.equal(Settings.get(st, 'newPerSession'), 10);
+  for (const n of [5, 15, 20, 10]) {
+    assert.equal(Settings.set(st, 'newPerSession', n), true);
+    assert.equal(Settings.get(st, 'newPerSession'), n);
+  }
+  assert.equal(Settings.set(st, 'newPerSession', '15'), true); // from a radio button value
+  assert.equal(Settings.get(st, 'newPerSession'), 15);
+  for (const bad of [0, 7, 25, 'lots', null]) assert.equal(Settings.set(st, 'newPerSession', bad), false);
+  assert.equal(Settings.get(st, 'newPerSession'), 15);
+});
+
+test('stored junk for newPerSession falls back to 10, other settings kept', () => {
+  const st = fakeStorage({ [Settings.KEY]: JSON.stringify({ sound: false, autoSpeak: true, newPerSession: 99 }) });
+  assert.deepEqual(Settings.read(st), { sound: false, autoSpeak: true, newPerSession: 10 });
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);

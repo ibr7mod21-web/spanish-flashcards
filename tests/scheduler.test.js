@@ -21,9 +21,26 @@ function stats(box, due) { return Object.assign(S.newStats(), { box, due, seen: 
 
 console.log('scheduler.js');
 
-test('new deck: up to 8 new cards, deck order', () => {
-  const q = S.buildQueue([cat('a', 12)], {}, {}, NOW);
+test('new deck: up to newMax new cards, deck order', () => {
+  const q = S.buildQueue([cat('a', 12)], {}, {}, NOW, 8);
   assert.deepEqual(q, ['a-0', 'a-1', 'a-2', 'a-3', 'a-4', 'a-5', 'a-6', 'a-7']);
+});
+
+test('default new-card limit is 10', () => {
+  assert.equal(S.buildQueue([cat('a', 30)], {}, {}, NOW).length, 10);
+});
+
+test('New words per session: 5 / 10 / 15 / 20', () => {
+  for (const n of [5, 10, 15, 20]) assert.equal(S.buildQueue([cat('a', 30)], {}, {}, NOW, n).length, n);
+});
+
+test('new-card limit still respects the 20-card session cap', () => {
+  const c = cat('a', 40);
+  const p = {};
+  for (let i = 0; i < 12; i++) p[`a-${i}`] = stats(1, NOW - 1);
+  const q = S.buildQueue([c], p, {}, NOW, 20);
+  assert.equal(q.length, 20);
+  assert.equal(q.filter((id) => !p[id]).length, 8);
 });
 
 test('due cards first, lowest box first, then new', () => {
@@ -51,7 +68,7 @@ test('25 due → 20 due, no new', () => {
 });
 
 test('studied new cards get the new-card slots first', () => {
-  const q = S.buildQueue([cat('a', 12)], {}, { 'a-10': 1, 'a-11': 1, 'a-3': 1 }, NOW);
+  const q = S.buildQueue([cat('a', 12)], {}, { 'a-10': 1, 'a-11': 1, 'a-3': 1 }, NOW, 8);
   assert.deepEqual(q.slice(0, 3), ['a-3', 'a-10', 'a-11']);
   assert.equal(q.length, 8);
 });

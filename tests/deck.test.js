@@ -61,6 +61,7 @@ test('expected categories and card counts', () => {
   assert.deepEqual(counts, {
     days: 7, numbers: 21, months: 12, colors: 11, family: 14, food: 22, verbs: 20,
     travel: 19, house: 19, health: 19, feelings: 18, time: 19, verbs2: 25, arabic: 25,
+    'core-01': 100,
   });
 });
 
@@ -189,6 +190,73 @@ test('no new card repeats a Spanish word that was already in the deck', () => {
   for (const { card, cat } of cards) {
     if (OLD.includes(cat.id)) continue;
     assert.ok(!old.has(bare(card.es)), `${card.id} ${card.es} already in the deck`);
+  }
+});
+
+console.log('core 2000');
+
+const core = deck.categories.filter((c) => /^core-\d\d$/.test(c.id));
+
+test('Core categories: ids core-NN, names "Core a–b", 100 cards each, ids core-NN-NNN in order', () => {
+  assert.ok(core.length >= 1);
+  core.forEach((cat, i) => {
+    const nn = String(i + 1).padStart(2, '0');
+    assert.equal(cat.id, `core-${nn}`);
+    assert.equal(cat.name, `Core ${i * 100 + 1}–${i * 100 + 100}`);
+    assert.equal(cat.cards.length, 100);
+    cat.cards.forEach((c, j) => assert.equal(c.id, `core-${nn}-${String(j + 1).padStart(3, '0')}`));
+  });
+});
+
+test('Core: no grammar-only words, no proper nouns, no articles on nouns', () => {
+  const grammar = new Set(['el', 'la', 'los', 'las', 'lo', 'un', 'una', 'de', 'del', 'a', 'al', 'en', 'y', 'o', 'que', 'se', 'le', 'me', 'te', 'nos', 'su', 'por', 'para', 'con', 'ni']);
+  for (const cat of core) for (const c of cat.cards) {
+    assert.ok(!grammar.has(c.es), `${c.id} ${c.es}`);
+    assert.ok(c.es[0] === c.es[0].toLowerCase(), `${c.id} ${c.es} looks like a proper noun`);
+    assert.ok(!/^(el|la|los|las) /.test(c.es), `${c.id} ${c.es} has an article`);
+  }
+});
+
+test('Core: no word repeats anything else in the deck (same spelling)', () => {
+  const low = (s) => s.normalize('NFC').toLowerCase();
+  const owner = new Map();
+  for (const { card, cat } of cards) {
+    if (!/^core-/.test(cat.id)) for (const f of [card.es].concat(card.alt || [])) owner.set(low(f), card.id);
+  }
+  for (const cat of core) for (const c of cat.cards) {
+    for (const f of [c.es].concat(c.alt || [])) {
+      assert.ok(!owner.has(low(f)) || owner.get(low(f)) === c.id, `${c.id} "${f}" already in ${owner.get(low(f))}`);
+      owner.set(low(f), c.id);
+    }
+  }
+});
+
+test('Core 1–100: spot checks (clarifiers, alts, feminine forms)', () => {
+  const byEn = Object.fromEntries(cards.map((x) => [x.card.en, x]));
+  for (const en of ['time (occurrence)', 'time (duration)', 'to know (a person, a place)', 'you (formal)', 'you (informal)']) assert.ok(byEn[en], en);
+  const cases = [['new', 'nueva'], ['good', 'buena'], ['good', 'buen'], ['first', 'primer'], ['some / any', 'algún'],
+    ['to return / to come back', 'regresar'], ['here', 'acá'], ['to get / to achieve', 'lograr'], ['to understand', 'comprender']];
+  for (const [en, ans] of cases) {
+    const { card, cat } = byEn[en];
+    assert.equal(grade(ans, card, cat.id).result, 'correct', `${en}: ${ans}`);
+  }
+  // si (if) and sí (yes) are different cards; the wrong accent is CLOSE, not CORRECT
+  assert.equal(grade('si', byEn.yes.card, 'core-01').result, 'close');
+});
+
+test('person nouns accept the feminine form', () => {
+  const byEn = Object.fromEntries(cards.map((x) => [x.card.en, x]));
+  const cases = [['doctor', 'médica'], ['doctor', 'doctora'], ['neighbor', 'vecina'], ['mayor', 'alcaldesa'], ['so-and-so', 'fulana']];
+  for (const [en, ans] of cases) {
+    const { card, cat } = byEn[en];
+    assert.equal(grade(ans, card, cat.id).result, 'correct', `${en}: ${ans}`);
+  }
+});
+
+test('every number card has "n" or numeric id digits', () => {
+  for (const { card, cat } of cards) {
+    if (cat.id === 'numbers') assert.ok(typeof card.n === 'number' || /\d+$/.test(card.id), card.id);
+    if ('n' in card) assert.equal(typeof card.n, 'number', card.id);
   }
 });
 

@@ -1,0 +1,102 @@
+# Core 1–100 (category core-01). Columns: en <TAB> es <TAB> alts (comma-separated) <TAB> ar <TAB> n (numbers only)
+# Order = frequency rank after filtering (see CLAUDE.md "Core 2000"). Lines starting with # are ignored.
+all / everything	todo	toda	كل / جميع
+but	pero		لكن
+more	más		أكثر
+this	este	esta	هذا
+other / another	otro	otra	آخر
+that (near you)	ese	esa	ذلك
+if	si		إذا
+because	porque		لأن
+when (not a question)	cuando		عندما
+he	él		هو
+very	muy		جدًا
+without	sin		بدون
+time (occurrence)	vez		مرة
+a lot / much	mucho	mucha	كثير
+what? (question)	qué		ماذا
+about / on top of	sobre		عن / على
+my	mi		ـي (مثل: بيتي)
+some / any	alguno	alguna, algún	بعض
+same	mismo	misma	نفس
+I	yo		أنا
+also / too	también		أيضًا
+year	año		سنة
+between / among	entre		بين
+like this / that way	así		هكذا
+first	primero	primera, primer	أول
+big / large	grande	gran	كبير
+to pass / to spend (time)	pasar		مرّ / قضى (وقتًا)
+time (duration)	tiempo		وقت
+she	ella		هي
+yes	sí		نعم
+day	día		يوم
+well / fine	bien		جيدًا / بخير
+little (not much)	poco	poca	قليل
+must / to owe	deber		وجب
+then / so	entonces		إذن
+thing	cosa		شيء
+so much	tanto	tanta	بهذا القدر
+man	hombre		رجل
+to seem	parecer		بدا
+our	nuestro	nuestra	ـنا (مثل: بيتنا)
+so (as in "so big")	tan		إلى هذا الحد
+where (not a question)	donde		حيث
+part	parte		جزء
+after / afterwards	después		بعد
+life	vida		حياة
+to stay / to remain	quedar	quedarse	بقي
+good	bueno	buena, buen	جيد
+to leave (something) / to let	dejar		ترك
+nothing	nada		لا شيء
+each / every	cada		كلّ واحد
+to follow / to continue	seguir	continuar	تبع / استمر
+less / fewer	menos		أقل
+new	nuevo	nueva	جديد
+something	algo		شيء ما
+alone / only	solo	sola	وحيد / فقط
+to call	llamar		اتصل / نادى
+to think	pensar		فكّر
+to return / to come back	volver	regresar	عاد
+to know (a person, a place)	conocer		عرف (شخصًا أو مكانًا)
+here	aquí	acá	هنا
+moment	momento		لحظة
+to look at / to watch	mirar		نظر إلى
+to count / to tell (a story)	contar		عدّ / حكى
+world	mundo		عالم
+house / home	casa		بيت
+woman	mujer		امرأة
+you (formal)	usted		حضرتك
+you (informal)	tú		أنت
+before	antes		قبل
+better / best	mejor		أفضل
+today	hoy		اليوم
+to enter / to go in	entrar		دخل
+to write	escribir		كتب
+to understand	entender	comprender	فهم
+case	caso		حالة
+country	país		بلد
+place	lugar	sitio	مكان
+person	persona		شخص
+hour	hora		ساعة
+work / job	trabajo	empleo	عمل
+to exist	existir		وُجد
+to receive	recibir		استلم
+to allow	permitir		سمح
+to appear	aparecer		ظهر
+to get / to achieve	conseguir	lograr, obtener	حصل على
+shape / form	forma		شكل
+to serve	servir		خدم
+to take out	sacar		أخرج
+to keep / to maintain	mantener		حافظ على
+to read	leer		قرأ
+almost	casi		تقريبًا
+badly	mal		بشكل سيئ
+older / bigger	mayor		أكبر
+last (final)	último	última	أخير
+although / even though	aunque		مع أن
+while	mientras		بينما
+people	gente		ناس
+way / manner	manera	modo	طريقة
+problem	problema		مشكلة
+word	palabra		كلمة

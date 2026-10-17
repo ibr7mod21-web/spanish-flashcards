@@ -141,7 +141,7 @@
     const now = Date.now();
     const queue = catId === null
       ? S.reviewAllQueue(deck.categories, progress, now)
-      : S.buildQueue(cardsIn(catId), progress, studied, now);
+      : S.buildQueue(cardsIn(catId), progress, studied, now, Settings.get(store(), 'newPerSession'));
     startQueue(queue);
   }
 
@@ -396,7 +396,7 @@
 
   function quizFromStudy() {
     const { catId, order } = study;
-    const queue = S.buildQueue(cardsIn(catId), progress, studied, Date.now());
+    const queue = S.buildQueue(cardsIn(catId), progress, studied, Date.now(), Settings.get(store(), 'newPerSession'));
     study = null;
     // Nothing due or new in this category: practice it instead.
     if (queue.length) startSession(catId);
@@ -493,6 +493,8 @@
   function renderSettings() {
     $('set-sound').checked = Settings.get(store(), 'sound');
     $('set-speak').checked = Settings.get(store(), 'autoSpeak');
+    const perSession = String(Settings.get(store(), 'newPerSession'));
+    for (const r of document.querySelectorAll('input[name="new-per-session"]')) r.checked = r.value === perSession;
     $('set-msg').textContent = '';
     showLastExport();
     $('export-box').hidden = true;
@@ -511,6 +513,15 @@
   }
 
   function wireSettings() {
+    for (const r of document.querySelectorAll('input[name="new-per-session"]')) {
+      r.addEventListener('change', () => {
+        if (!Settings.set(store(), 'newPerSession', r.value)) {
+          $('set-msg').textContent = 'Couldn’t save this setting on this device.';
+          return;
+        }
+        pushSoon();
+      });
+    }
     const map = { 'set-sound': 'sound', 'set-speak': 'autoSpeak' };
     for (const [id, key] of Object.entries(map)) {
       $(id).addEventListener('change', (e) => {

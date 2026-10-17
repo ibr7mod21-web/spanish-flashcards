@@ -421,6 +421,8 @@ textarea {
 .toggle-note { display: block; margin-top: 2px; }
 .toggle { padding: 8px 0; }
 .last-export { margin: 4px 0 12px; font-weight: 600; }
+.setting-name { margin: 0 0 8px; }
+.setting-note { margin: 8px 0 0; }
 .sync-status { margin: 0 0 12px; font-weight: 600; }
 .field-label { display: block; font-size: 0.9rem; margin-bottom: 6px; }
 .field {

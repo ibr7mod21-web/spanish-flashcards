@@ -7,15 +7,22 @@
   const KEY = 'sf.settings.v1';
   const LAST_EXPORT_KEY = 'sf.lastExport.v1';
   const UPDATED_KEY = 'sf.settings.updatedAt'; // ms; lets cloud sync keep the newer settings
-  const DEFAULTS = Object.freeze({ sound: true, autoSpeak: true });
+  const DEFAULTS = Object.freeze({ sound: true, autoSpeak: true, newPerSession: 10 });
+  // Allowed values per key: 'bool', or a list of allowed numbers.
+  const SCHEMA = Object.freeze({ sound: 'bool', autoSpeak: 'bool', newPerSession: [5, 10, 15, 20] });
 
-  // Known keys with boolean values only; anything else (old "haptics", junk) falls back to defaults.
+  function valid(key, v) {
+    const rule = SCHEMA[key];
+    return rule === 'bool' ? typeof v === 'boolean' : rule.includes(v);
+  }
+
+  // Known keys with allowed values only; anything else (old "haptics", junk) falls back to defaults.
   function parse(raw) {
     const out = Object.assign({}, DEFAULTS);
     let data = null;
     try { data = raw ? JSON.parse(raw) : null; } catch (e) { data = null; }
     if (data && typeof data === 'object') {
-      for (const k of Object.keys(DEFAULTS)) if (typeof data[k] === 'boolean') out[k] = data[k];
+      for (const k of Object.keys(DEFAULTS)) if (valid(k, data[k])) out[k] = data[k];
     }
     return out;
   }
@@ -29,11 +36,13 @@
     return read(storage)[key];
   }
 
-  // Returns true if saved.
+  // Returns true if saved. Booleans are coerced; numbers must be one of the allowed values.
   function set(storage, key, value, now) {
     if (!(key in DEFAULTS)) throw new Error('Unknown setting: ' + key);
+    const v = SCHEMA[key] === 'bool' ? !!value : Number(value);
+    if (!valid(key, v)) return false;
     const s = read(storage);
-    s[key] = !!value;
+    s[key] = v;
     try {
       storage.setItem(KEY, JSON.stringify(s));
       storage.setItem(UPDATED_KEY, String(now || Date.now()));
@@ -66,7 +75,7 @@
     try { storage.setItem(LAST_EXPORT_KEY, new Date(date).toISOString()); return true; } catch (e) { return false; }
   }
 
-  const api = { KEY, LAST_EXPORT_KEY, UPDATED_KEY, DEFAULTS, parse, read, get, set, getUpdatedAt, replace, getLastExport, setLastExport };
+  const api = { KEY, LAST_EXPORT_KEY, UPDATED_KEY, DEFAULTS, SCHEMA, parse, read, get, set, getUpdatedAt, replace, getLastExport, setLastExport };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Settings = api;
 })(typeof self !== 'undefined' ? self : this);
